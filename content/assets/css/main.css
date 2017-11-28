@@ -1,0 +1,113 @@
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  background: url(../img/hexagons.png),linear-gradient(to right,#1C425B,#3F9DDA);
+}
+
+body > .container {
+  padding: 20px 0;
+}
+
+svg {
+  font-family: "Source Sans Pro",sans-serif;
+}
+
+h1,h2,h3,h4,h5,h6 {
+  margin: 0;
+  padding: 0;
+  padding-top: 10px;
+}
+
+h1 {
+  color: rgba(0,0,0,0.75);
+  font-size: 2.5em;
+}
+
+h2 {
+  color: #419eda;
+  font-size: 2.25em;
+}
+
+h3 {
+  color: #f04c5c;
+  font-size: 2.0em;
+}
+
+h4 {
+  color: rgba(0,0,0,0.75);
+  font-size: 1.75em;
+}
+
+h5 {
+  color: #419eda;
+  font-size: 1.5em;
+}
+
+h6 {
+  color: #f04c5c;
+  font-size: 1.25em;
+}
+
+pre {
+  font-size: 14px;
+  line-height: normal;
+  padding: 10px;
+}
+
+pre, code {
+  color: inherit;
+}
+
+hr {
+  margin-top: 5px;
+}
+
+::selection {
+  background-color: #FFFF0A;
+  color: rgba(0,0,0,0.75);
+}
+
+::-moz-selection {
+  background: #FFFF0A;
+  color: rgba(0,0,0,0.75);
+}
+
+.course-title {
+  font-size: 1.25em;
+}
+
+.navbar-brand {
+  padding: 10px 15px;
+}
+
+.content {
+  min-height: 500px;
+  background-color: #fff;
+  padding: 10px;
+}
+
+div.highlighter-rouge {
+  margin-bottom: 25px;
+}
+
+p > code.highlighter-rouge {
+  color: #f04c5c;
+  padding: 0 8px;
+}
+
+.lab-content > p {
+  margin-top: 10px;
+}
+
+.console-output {
+
+}
+
+.console-output > pre {
+  background-color: #333333;
+  color: #B3B3B3;
+  /*font-size: 0.75em;*/
+}

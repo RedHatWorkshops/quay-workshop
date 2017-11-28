@@ -1,0 +1,43 @@
+---
+layout: page
+title: Exercises
+permalink: /exercises/
+icon: laptop
+---
+
+{% assign all_labs = site.pages | where:"layout","lab" %}
+{% assign col1_labs = all_labs | slice:  0, 18 %}
+{% assign col2_labs = all_labs | slice: 18, 18 %}
+{% assign col3_labs = all_labs | slice: 36, 18 %}
+{% assign col4_labs = all_labs | slice: 54, 18 %}
+
+<div class="row">
+  <div class="col-md-3">
+    <ol>
+    {% for lab in col1_labs %}
+      <li><a href="{{ lab.url | relative_url }}">{{ lab.title | escape }}</a></li>
+    {% endfor %}
+    </ol>
+  </div>
+  <div class="col-md-3">
+    <ol start="19">
+    {% for lab in col2_labs %}
+      <li><a href="{{ lab.url | relative_url }}">{{ lab.title | escape }}</a></li>
+    {% endfor %}
+    </ol>
+  </div>
+  <div class="col-md-3">
+    <ol start="37">
+    {% for lab in col3_labs %}
+      <li><a href="{{ lab.url | relative_url }}">{{ lab.title | escape }}</a></li>
+    {% endfor %}
+    </ol>
+  </div>
+  <div class="col-md-3">
+    <ol start="55">
+    {% for lab in col4_labs %}
+      <li><a href="{{ lab.url | relative_url }}">{{ lab.title | escape }}</a></li>
+    {% endfor %}
+    </ul>
+  </div>
+</div>
