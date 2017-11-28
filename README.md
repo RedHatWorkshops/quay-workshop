@@ -1,8 +1,3 @@
-# training-cl-essentials
-
-Artifacts for the Container Linux Essentials Course.
-
-
 # Container Linux Essentials
 
 This repository contains the artifacts for the Container Linux Essentials course.
