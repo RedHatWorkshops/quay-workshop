@@ -106,7 +106,7 @@ p > code.highlighter-rouge {
 
 }
 
-.console-output > pre {
+.console-output > div > pre {
   background-color: #333333;
   color: #B3B3B3;
   /*font-size: 0.75em;*/
