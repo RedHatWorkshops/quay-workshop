@@ -197,10 +197,12 @@ resource "aws_instance" "bastion" {
 
 # Create the launch configuration for each lab environment
 resource "aws_launch_configuration" "lab" {
+  depends_on    = ["aws_key_pair.lab-key"]
   count         = "${var.lab_count}"
   name          = "${var.cluster_name}-${format("%s%02d", var.lab_prefix, count.index + var.lab_start)}"
   image_id      = "${data.aws_ami.coreos_ami.id}"
   instance_type = "${var.lab_instance_type}"
+  key_name      = "${local.cluster_key_name}"
 
   lifecycle {
     create_before_destroy = true
@@ -211,13 +213,18 @@ resource "aws_launch_configuration" "lab" {
 resource "aws_autoscaling_group" "lab" {
   count                = "${var.lab_count}"
   name                 = "${var.cluster_name}-${format("%s%02d", var.lab_prefix, count.index + var.lab_start)}"
-  launch_configuration = "${aws_launch_configuration.lab.name}"
+  launch_configuration = "${element(aws_launch_configuration.lab.*.name, count.index)}"
   max_size             = "${var.lab_cluster_count}"
   min_size             = "${var.lab_cluster_count}"
   desired_capacity     = "${var.lab_cluster_count}"
   vpc_zone_identifier  = ["${data.aws_subnet_ids.default.ids}"]
 
   tags = [
+    {
+      key                 = "Name"
+      value               = "${var.cluster_name}-${format("%s%02d", var.lab_prefix, count.index + var.lab_start)}"
+      propagate_at_launch = true
+    },
     {
       key                 = "labName"
       value               = "${var.cluster_name}-${format("%s%02d", var.lab_prefix, count.index + var.lab_start)}"
