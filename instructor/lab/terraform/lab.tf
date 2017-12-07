@@ -66,6 +66,11 @@ data "aws_vpc" "default" {
   default = true
 }
 
+# Configure subnets for default VPC
+data "aws_subnet_ids" "default" {
+  vpc_id = "${data.aws_vpc.default.id}"
+}
+
 # Create the local cluster asset directory
 resource "null_resource" "local-cluster-assets" {
   provisioner "local-exec" {
@@ -204,12 +209,13 @@ resource "aws_launch_configuration" "lab" {
 
 # Create the autoscaling group for each lab environment
 resource "aws_autoscaling_group" "lab" {
-  count                     = "${var.lab_count}"
-  name                      = "${var.cluster_name}-${format("%s%02d", var.lab_prefix, count.index + var.lab_start)}"
-  launch_configuration      = "${aws_launch_configuration.lab.name}"
-  max_size                  = "${var.lab_cluster_count}"
-  min_size                  = "${var.lab_cluster_count}"
-  desired_capacity          = "${var.lab_cluster_count}"
+  count                = "${var.lab_count}"
+  name                 = "${var.cluster_name}-${format("%s%02d", var.lab_prefix, count.index + var.lab_start)}"
+  launch_configuration = "${aws_launch_configuration.lab.name}"
+  max_size             = "${var.lab_cluster_count}"
+  min_size             = "${var.lab_cluster_count}"
+  desired_capacity     = "${var.lab_cluster_count}"
+  vpc_zone_identifier  = ["${data.aws_subnet_ids.default.ids}"]
 
   tags = [
     {
