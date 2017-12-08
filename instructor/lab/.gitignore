@@ -2,3 +2,4 @@ clusters/
 *.tfstate
 *.tfstate.backup
 *.tfvars
+.terraform*
