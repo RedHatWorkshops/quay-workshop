@@ -1,7 +1,8 @@
 # Configure local values
 locals {
-  cluster_dir = "${var.assets_dir}/clusters/${var.cluster_name}"
+  cluster_dir      = "${var.assets_dir}/clusters/${var.cluster_name}"
   cluster_key_name = "${var.cluster_name}${var.lab_key_suffix}"
+  lab_node_count   = "${var.lab_count * var.lab_cluster_count}"
 }
 
 # Configure the AWS Provider
@@ -181,66 +182,123 @@ resource "null_resource" "local-archive" {
   }
 }
 
-# Create bastion node
-resource "aws_instance" "bastion" {
-  ami                         = "${data.aws_ami.ubuntu_ami.id}"
-  instance_type               = "${var.bastion_instance_type}"
+# Create lab node security group
+resource "aws_security_group" "lab_node" {
+  name        = "${var.cluster_name}-lab-node"
+  description = "Lab Node security group for ${var.cluster_name} cluster."
+  vpc_id      = "${data.aws_vpc.default.id}"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 2379
+    to_port     = 2380
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# Create bastion security group
+resource "aws_security_group" "bastion" {
+  name        = "${var.cluster_name}-bastion"
+  description = "Bastion security group for ${var.cluster_name} cluster."
+  vpc_id      = "${data.aws_vpc.default.id}"
+
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_instance" "lab_nodes" {
+  depends_on                  = [
+    "aws_key_pair.lab-key",
+    "aws_security_group.lab_node"
+  ]
+  count                       = "${local.lab_node_count}"
+  ami                         = "${data.aws_ami.coreos_ami.id}"
+  instance_type               = "${var.lab_instance_type}"
   key_name                    = "${local.cluster_key_name}"
+  vpc_security_group_ids      = ["${aws_security_group.lab_node.id}"]
   associate_public_ip_address = true
 
   tags {
-    Name = "${var.cluster_name}-${var.bastion_name_suffix}"
+    Name = "${var.cluster_name}-${var.lab_prefix}-${count.index + 1}"
     createdBy = "${var.lab_created_by}"
     expirationDate = "${var.lab_expiration_date}"
   }
 }
 
-# Create the launch configuration for each lab environment
-resource "aws_launch_configuration" "lab" {
-  depends_on    = ["aws_key_pair.lab-key"]
-  count         = "${var.lab_count}"
-  name          = "${var.cluster_name}-${format("%s%02d", var.lab_prefix, count.index + var.lab_start)}"
-  image_id      = "${data.aws_ami.coreos_ami.id}"
-  instance_type = "${var.lab_instance_type}"
-  key_name      = "${local.cluster_key_name}"
+# Create bastion node
+resource "aws_instance" "bastions" {
+  depends_on                  = [
+    "aws_instance.lab_nodes",
+    "aws_security_group.bastion"
+  ]
+  count                       = "${var.lab_count}"
+  ami                         = "${data.aws_ami.ubuntu_ami.id}"
+  instance_type               = "${var.bastion_instance_type}"
+  key_name                    = "${local.cluster_key_name}"
+  vpc_security_group_ids      = ["${aws_security_group.bastion.id}"]
+  associate_public_ip_address = true
 
-  lifecycle {
-    create_before_destroy = true
+  tags {
+    Name = "${var.cluster_name}-${format("%s%02d", var.lab_prefix, count.index + 1)}-${var.bastion_name_suffix}"
+    createdBy = "${var.lab_created_by}"
+    expirationDate = "${var.lab_expiration_date}"
   }
 }
 
-# Create the autoscaling group for each lab environment
-resource "aws_autoscaling_group" "lab" {
-  count                = "${var.lab_count}"
-  name                 = "${var.cluster_name}-${format("%s%02d", var.lab_prefix, count.index + var.lab_start)}"
-  launch_configuration = "${element(aws_launch_configuration.lab.*.name, count.index)}"
-  max_size             = "${var.lab_cluster_count}"
-  min_size             = "${var.lab_cluster_count}"
-  desired_capacity     = "${var.lab_cluster_count}"
-  vpc_zone_identifier  = ["${data.aws_subnet_ids.default.ids}"]
+data "aws_route53_zone" "lab-zone" {
+  name = "${var.domain_name}."
+}
 
-  tags = [
-    {
-      key                 = "Name"
-      value               = "${var.cluster_name}-${format("%s%02d", var.lab_prefix, count.index + var.lab_start)}"
-      propagate_at_launch = true
-    },
-    {
-      key                 = "labName"
-      value               = "${var.cluster_name}-${format("%s%02d", var.lab_prefix, count.index + var.lab_start)}"
-      propagate_at_launch = true
-    },
-    {
-      key                 = "createdBy"
-      value               = "${var.lab_created_by}"
-      propagate_at_launch = true
-    },
-    {
-      key                 = "expirationDate"
-      value               = "${var.lab_expiration_date}"
-      propagate_at_launch = true
-    },
-  ]
+resource "aws_route53_record" "bastions" {
+  depends_on = ["aws_instance.bastions"]
+  count      = "${var.lab_count}"
+  zone_id    = "${data.aws_route53_zone.lab-zone.zone_id}"
+  name       = "${element(aws_instance.bastions.*.tags.Name, count.index)}.${data.aws_route53_zone.lab-zone.name}"
+  type       = "A"
+  ttl        = "300"
+  records    = ["${element(aws_instance.bastions.*.public_ip, count.index)}"]
+}
+
+resource "null_resource" "coreos_update" {
+  depends_on = ["aws_instance.bastions"]
+  count      = "${var.lab_count}"
+
+  connection {
+    host = "${element(aws_instance.bastions.*.public_ip, count.index)}"
+    user = "${var.bastion_user}"
+    private_key = "${file("${var.assets_dir}/${var.cluster_name}-key")}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo echo REBOOT_STRATEGY=off >> /etc/coreos/update.conf"
+    ]
+  }
 }
 
 # Generate environment data
