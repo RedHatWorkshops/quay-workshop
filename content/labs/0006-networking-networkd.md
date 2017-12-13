@@ -9,11 +9,10 @@ systemd-networkd is a system daemon that manages network configurations. It dete
 
 There are three types of configuration files. They all use a format similar to systemd unit files.
 
-.network files. They will apply a network configuration for a matching device
-.netdev files. They will create a virtual network device for a matching environment
-.link files. When a network device appears, udev will look for the first matching .link file
+`.network` files. They will apply a network configuration for a matching device
+`.netdev` files. They will create a virtual network device for a matching environment
+`.link` files. When a network device appears, udev will look for the first matching .link file
 
-symlink it to /dev/null
 the * joker can be used in VALUE (e.g en* will match any Ethernet device)
 
 
@@ -39,6 +38,7 @@ ls /usr/lib/systemd/network/
 
 ```
 ls /etc/systemd/network/
+```
 ```
 cat /usr/lib/systemd/network/99-default.link
 ```
@@ -122,6 +122,7 @@ cat > /etc/systemd/system/systemd-networkd.service.d/10-debug.conf <<EOF
 [Service]
 Environment=SYSTEMD_LOG_LEVEL=debug
 EOF
+```
 
 Restart networkd
 
