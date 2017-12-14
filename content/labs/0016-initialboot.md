@@ -1,10 +1,14 @@
 ---
 layout: lab
-title: Second Boot
-permalink: /lab/logs/firstboot/
+title: First Boot
+permalink: /lab/logs/first-boot/
 module: Logs
 ---
 
+Logs for the first boot.
+
+{: .console-output}
+```
 -- Logs begin at Mon 2017-12-11 09:29:54 UTC, end at Mon 2017-12-11 09:30:55 UTC. --
 Dec 11 09:29:54 localhost kernel: random: get_random_bytes called from start_kernel+0x42/0x4cf with crng_init=0
 Dec 11 09:29:54 localhost kernel: Linux version 4.13.16-coreos-r2 (jenkins@jenkins-worker-5) (gcc version 4.9.4 (Gentoo Hardened 4.9.4 p1.0, pie-0.6.4)) #1 SMP Wed Dec 6 04:27:34 UTC 2017
@@ -1005,3 +1009,4 @@ Dec 11 09:30:22 ip-172-31-31-16 systemd-networkd[700]: eth0: Configured
 Dec 11 09:30:22 ip-172-31-31-16 systemd-timesyncd[678]: Network configuration changed, trying to establish connection.
 Dec 11 09:30:23 ip-172-31-31-16 systemd-timesyncd[678]: Synchronized to time server 204.11.201.12:123 (2.coreos.pool.ntp.org).
 Dec 11 09:30:55 ip-172-31-31-16 update_engine[703]: I1211 09:30:55.105854   703 update_attempter.cc:493] Updating boot flags...
+```

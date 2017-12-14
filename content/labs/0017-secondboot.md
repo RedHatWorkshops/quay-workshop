@@ -1,10 +1,14 @@
 ---
 layout: lab
 title: Second Boot
-permalink: /lab/logs/secondboot/
+permalink: /lab/logs/second-boot/
 module: Logs
 ---
 
+Logs for the second boot.
+
+{: .console-output}
+```
 -- Logs begin at Mon 2017-12-11 09:29:54 UTC, end at Mon 2017-12-11 09:44:34 UTC. --
 Dec 11 09:44:20 localhost kernel: random: get_random_bytes called from start_kernel+0x42/0x4cf with crng_init=0
 Dec 11 09:44:20 localhost kernel: Linux version 4.13.16-coreos-r2 (jenkins@jenkins-worker-5) (gcc version 4.9.4 (Gentoo Hardened 4.9.4 p1.0, pie-0.6.4)) #1 SMP Wed Dec 6 04:27:34 UTC 2017
@@ -882,3 +886,4 @@ Dec 11 09:44:34 ip-172-31-31-16 systemd[742]: Reached target Basic System.
 Dec 11 09:44:34 ip-172-31-31-16 systemd[742]: Reached target Default.
 Dec 11 09:44:34 ip-172-31-31-16 systemd[742]: Startup finished in 19ms.
 Dec 11 09:44:34 ip-172-31-31-16 systemd[1]: Started User Manager for UID 500.
+```

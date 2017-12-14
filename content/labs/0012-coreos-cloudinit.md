@@ -1,7 +1,7 @@
 ---
 layout: lab
-title: Coreos Cloud-Init
-permalink: /lab/provisioning/coreoscloudinit/
+title: CoreOS Cloud-Init
+permalink: /lab/provisioning/coreos-cloud-init/
 module: Provisioning
 ---
 

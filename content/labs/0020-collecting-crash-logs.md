@@ -1,38 +1,66 @@
 ---
 layout: lab
 title: Collecting Crash Logs
-permalink: /lab/troubleshooting/crashlogs/
+permalink: /lab/troubleshooting/crash-logs/
 module: Troubleshooting
 ---
 
+In the unfortunate case that an OS crashes, it's often extremely helpful to
+gather information about the event. There are two popular tools used to
+accomplished this goal: `kdump` and `pstore`.
 
-Collecting crash logs
+Container Linux relies on `pstore`, a persistent storage abstraction provided by
+the Linux kernel, to store logs in the event of a kernel panic. Since this
+mechanism is just an abstraction, it depends on hardware support to actually
+persist the data across reboots. If the hardware support is absent, the `pstore`
+will remain empty. On AMD64 machines, `pstore` is typically backed by the ACPI
+error record serialization table (ERST).
 
-In the unfortunate case that an OS crashes, it's often extremely helpful to gather information about the event. There are two popular tools used to accomplished this goal: kdump and pstore. Container Linux relies on pstore, a persistent storage abstraction provided by the Linux kernel, to store logs in the event of a kernel panic. Since this mechanism is just an abstraction, it depends on hardware support to actually persist the data across reboots. If the hardware support is absent, the pstore will remain empty. On AMD64 machines, pstore is typically backed by the ACPI error record serialization table (ERST).
+###### Using pstore
 
-Using pstore
+On Container Linux, the `pstore` is automatically mounted to /sys/fs/pstore. The
+contents of the store can be explored using standard filesystem tools:
 
-On Container Linux, the pstore is automatically mounted to /sys/fs/pstore. The contents of the store can be explored using standard filesystem tools:
+```
+ls /sys/fs/pstore/
+```
 
-$ ls /sys/fs/pstore/
-On this particular machine, there isn't anything in the pstore yet. In order to test the mechanism, a kernel panic can be triggered:
+On this particular machine, there isn't anything in the pstore yet. In order to
+test the mechanism, a kernel panic can be triggered:
 
-$ echo c > /proc/sysrq-trigger
-Once the machine boots, the pstore can again be inspected:
+```
+echo c > /proc/sysrq-trigger
+```
 
-$ ls /sys/fs/pstore/
+Once the machine boots, the `pstore` can again be inspected:
+
+```
+ls /sys/fs/pstore/
+```
+
+Now there are a series of dmesg logs, stored in the ACPI ERST.
+
+{: .console-output}
+```
 dmesg-erst-6319986351055831041  dmesg-erst-6319986351055831044
 dmesg-erst-6319986351055831042  dmesg-erst-6319986351055831045
 dmesg-erst-6319986351055831043
-Now there are a series of dmesg logs, stored in the ACPI ERST. Looking at the first file, the cause of the panic can be discovered:
+```
 
-$ cat /sys/fs/pstore/dmesg-erst-6319986351055831041
+Looking at the first file, the cause of the panic can be discovered:
+
+```
+cat /sys/fs/pstore/dmesg-erst-6319986351055831041
+```
+
+{: .console-output}
+```
 Oops#1 Part1
 ...
 <6>[  201.650687] sysrq: SysRq : Trigger a crash
 <1>[  201.654822] BUG: unable to handle kernel NULL pointer dereference at           (null)
 <1>[  201.662670] IP: [<ffffffffbd3d1956>] sysrq_handle_crash+0x16/0x20
-<4>[  201.668783] PGD 0 
+<4>[  201.668783] PGD 0
 <4>[  201.670809] Oops: 0002 [#1] SMP
 <4>[  201.673948] Modules linked in: coretemp sb_edac edac_core x86_pkg_temp_thermal kvm_intel ipmi_ssif kvm mei_me irqbypass i2c_i801 mousedev evdev mei ipmi_si ipmi_msghandler tpm_tis button tpm sch_fq_codel ip_tables hid_generic usbhid hid sd_mod squashfs loop igb ahci xhci_pci ehci_pci i2c_algo_bit libahci xhci_hcd ehci_hcd i2c_core libata i40e hwmon usbcore ptp crc32c_intel scsi_mod usb_common pps_core dm_mirror dm_region_hash dm_log dm_mod autofs4
 <4>[  201.714354] CPU: 0 PID: 1899 Comm: bash Not tainted 4.7.0-coreos #1
@@ -63,25 +91,65 @@ Oops#1 Part1
 <4>[  201.872514]  [<ffffffffbd1e6a25>] SyS_write+0x55/0xc0
 <4>[  201.877562]  [<ffffffffbd003c6d>] do_syscall_64+0x5d/0x150
 <4>[  201.883047]  [<ffffffffbd58e161>] entry_SYSCALL64_slow_path+0x25/0x25
-<4>[  201.889474] Code: df ff 48 c7 c7 f3 a3 7d bd e8 47 c5 d3 ff e9 de fe ff ff 66 90 0f 1f 44 00 00 55 c7 05 48 b4 66 00 01 00 00 00 48 89 e5 0f ae f8 <c6> 04 25 00 00 00 00 01 5d c3 0f 1f 44 00 00 55 31 c0 c7 05 5e 
+<4>[  201.889474] Code: df ff 48 c7 c7 f3 a3 7d bd e8 47 c5 d3 ff e9 de fe ff ff 66 90 0f 1f 44 00 00 55 c7 05 48 b4 66 00 01 00 00 00 48 89 e5 0f ae f8 <c6> 04 25 00 00 00 00 01 5d c3 0f 1f 44 00 00 55 31 c0 c7 05 5e
 <1>[  201.909425] RIP  [<ffffffffbd3d1956>] sysrq_handle_crash+0x16/0x20
 <4>[  201.915615]  RSP <ffff881fd92d3d98>
 <4>[  201.919097] CR2: 0000000000000000
 <4>[  201.922450] ---[ end trace 8794939ba0598b91 ]---
-The cause of the panic was a system request! The remaining files in the pstore contain more of the logs leading up to the panic as well as more context. Each of the files has a small, descriptive header describing the source of the logs. Looking at each of the headers shows the rough structure of the logs:
+```
 
-$ head --lines=1 /sys/fs/pstore/dmesg-erst-6319986351055831041
+The cause of the panic was a system request! The remaining files in the pstore
+contain more of the logs leading up to the panic as well as more context. Each
+of the files has a small, descriptive header describing the source of the logs.
+
+Looking at each of the headers shows the rough structure of the logs:
+
+```
+head --lines=1 /sys/fs/pstore/dmesg-erst-6319986351055831041
+```
+
+{: .console-output}
+```
 Oops#1 Part1
+```
 
-$ head --lines=1 /sys/fs/pstore/dmesg-erst-6319986351055831042
+```
+head --lines=1 /sys/fs/pstore/dmesg-erst-6319986351055831042
+```
+
+{: .console-output}
+```
 Oops#1 Part2
+```
+```
+head --lines=1 /sys/fs/pstore/dmesg-erst-6319986351055831043
+```
 
-$ head --lines=1 /sys/fs/pstore/dmesg-erst-6319986351055831043
+{: .console-output}
+```
 Panic#2 Part1
+```
 
-$ head --lines=1 /sys/fs/pstore/dmesg-erst-6319986351055831044
+```
+head --lines=1 /sys/fs/pstore/dmesg-erst-6319986351055831044
+```
+
+{: .console-output}
+```
 Panic#2 Part2
+```
 
-$ head --lines=1 /sys/fs/pstore/dmesg-erst-6319986351055831045
+```
+head --lines=1 /sys/fs/pstore/dmesg-erst-6319986351055831045
+```
+
+{: .console-output}
+```
 Panic#2 Part3
-It is important to note that the pstore typically has very limited storage space (on the order of kilobytes) and will not overwrite entries when out of space. The files in /sys/fs/pstore must be removed to free up space. The typical approach is to move the files from the pstore to a more permanent storage location on boot, but Container Linux will not do this automatically for you.
+```
+
+It is important to note that the `pstore` typically has very limited storage
+space (on the order of kilobytes) and will not overwrite entries when out of
+space. The files in /sys/fs/pstore must be removed to free up space. The typical
+approach is to move the files from the pstore to a more permanent storage
+location on boot, but Container Linux will not do this automatically for you.
