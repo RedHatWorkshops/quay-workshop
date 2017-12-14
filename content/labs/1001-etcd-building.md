@@ -3,6 +3,7 @@ layout: lab
 title: Building etcd
 permalink: /lab/etcd/building/
 module: etcd
+published: false
 ---
 
 #### Build the latest version

@@ -3,6 +3,7 @@ layout: lab
 title: Setting up etcd
 permalink: /lab/etcd/settingupetcd/
 module: etcd
+published: false
 ---
 
 
@@ -34,7 +35,7 @@ A user should avoid restarting an etcd member with a data directory from an out-
 cluster 4f258d9b7c1cf424
 ------------------------------------
 131bd3a37451d475 - machine-1   - became follower first -- becomes leader when machine 2 is added.
-67a931f123e0e0ed - machine-2 - 
+67a931f123e0e0ed - machine-2 -
 54990a9b703f66f5 - machine-3
 
 
@@ -151,7 +152,7 @@ etcdctl --endpoints=$ENDPOINTS --write-out="json" get foo
 cluster 4f258d9b7c1cf424
 ------------------------------------
 131bd3a37451d475 - machine-1   - became follower first -- becomes leader when machine 2 is added.
-67a931f123e0e0ed - machine-2 - 
+67a931f123e0e0ed - machine-2 -
 54990a9b703f66f5 - machine-3
 
 

@@ -3,6 +3,7 @@ layout: lab
 title: Interacting with etcd
 permalink: /lab/etcd/interacting/
 module: etcd
+published: false
 ---
 
 Users mostly interact with etcd by putting or getting the value of a key.
