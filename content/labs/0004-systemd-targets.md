@@ -1,7 +1,7 @@
 ---
 layout: lab
 title: Systemd Targets Overview
-permalink: /lab/systemd/targetsoverview
+permalink: /lab/systemd/targetsoverview/
 module: Systemd
 ---
 

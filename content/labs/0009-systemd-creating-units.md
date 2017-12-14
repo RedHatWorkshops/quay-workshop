@@ -1,7 +1,7 @@
 ---
 layout: lab
 title: Creating Systemd Units
-permalink: /lab/systemd/creatingunits
+permalink: /lab/systemd/creatingunits/
 module: Systemd
 ---
 

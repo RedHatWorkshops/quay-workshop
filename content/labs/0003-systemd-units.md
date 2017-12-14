@@ -1,11 +1,11 @@
 ---
 layout: lab
 title: Systemd Units Overview
-permalink: /lab/systemd/unitsoverview
+permalink: /lab/systemd/unitsoverview/
 module: Systemd
 ---
 
-List the active state of all loaded units. Optionally, limit the type of unit. 
+List the active state of all loaded units. Optionally, limit the type of unit.
 
 ```
 sudo systemctl list-units --type=service
