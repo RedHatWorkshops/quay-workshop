@@ -5,38 +5,56 @@ permalink: /lab/docker/usingdocker/
 module: Docker
 ---
 
-```
-systemctl status docker
-```
+Check the status of the docker daemon.
 
 ```
-systemctl start docker
+sudo systemctl status docker
 ```
 
+Start the Docker service (if it isn't already started).
+
 ```
-docker pull centos7
+sudo systemctl start docker
 ```
+
+Pull down a CentOS image from Docker Hub.
+
+```
+docker pull centos:7
+```
+
+List all docker images available on the host.
 
 ```
 docker images
 ```
 
-```
-docker run -it --rm centos7 cat /etc/hosts
-```
+Execute `cat /etc/hosts` within a container.
 
 ```
-docker run -it centos7 bash
+docker run -it --rm centos:7 cat /etc/hosts
 ```
+
+Execute `bash` within a container.
+
+```
+docker run -it centos:7 bash
+```
+
+Run within the container.
 
 ```
 echo hello > /tmp/testfile
 exit
 ```
 
+See all containers (including stopped).
+
 ```
 docker ps -a
 ```
+
+Start the stopped container - the file should still exist!
 
 ```
 docker start -ai <container-name>
@@ -44,41 +62,61 @@ cat /tmp/testfile
 exit
 ```
 
-```
-docker run -i centos7 bash -c "yum install -y httpd; yum clean alll"
-```
+Install `httpd` inside a new container.
 
 ```
-docker ps -l
+docker run -i centos:7 bash -c "yum install -y httpd; yum clean alll"
 ```
+
+Show all containers.
+
+```
+docker ps -a
+```
+
+Tag the Centos7 + httpd container.
 
 ```
 docker commit -m "Centos7 + httpd" <container-name> centos7_httpd
 ```
 
+Confirm a new image exists.
+
 ```
 docker images
 ```
+
+Run a new container that listens on 8080 on the host and forwards to 80 in the container.
 
 ```
 docker run -p 8080:80 -d centos7_httpd /usr/sbin/httpd -DFOREGROUND
 ```
 
+Confirm httpd is responding.
+
 ```
 curl http://localhost:8080
 ```
+
+Tag the container image with a new name.
 
 ```
 docker tag centos7_httpd quay.io/coreostrainme/centos7_httpd:latest
 ```
 
+List docker images
+
 ```
 docker images
 ```
 
+Push the container to the registry.
+
 ```
 docker push quay.io/coreostrainme/centos7_httpd:latest
 ```
+
+Output the image locally as a tarball.
 
 ```
 docker save --output=rhel_httpd-latest.tar centos7_httpd
