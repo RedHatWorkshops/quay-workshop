@@ -62,3 +62,9 @@ drwxr-xr-x 23 root root 4096 Oct 15 00:06 ..
 -rw-r--r--  1 root root  148 Aug 17  2015 .profile
 drwx------  2 root root 4096 Oct 15 00:06 .ssh
 ```
+
+SSH into `host1`. 
+
+```
+ssh lab@host1
+```
