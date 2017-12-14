@@ -30,15 +30,15 @@ sudo systemctl status systemd-networkd
 View any possible `.link`, `.network`, or `.netdev` files.
 
 ```
-ls /etc/systemd/system/ | grep {.network,.link,.netdev}
+find /etc/systemd/system -name "*.link*" -or -name "*.network" -or -name "*.netdev"
 ```
 
 ```
-ls /run/systemd/network | grep {.network,.link,.netdev}
+find /run/systemd/network/ -name "*.link*" -or -name "*.network" -or -name "*.netdev"
 ```
 
 ```
-ls /usr/lib/systemd/network | grep {.network,.link,.netdev}
+find /usr/lib/systemd/ -name "*.link*" -or -name "*.network" -or -name "*.netdev"
 ```
 
 View the default `.link` file.
@@ -62,7 +62,7 @@ sudo networkctl status 2
 Let's create a bridge device by creating a `.netdev` file.
 
 ```
-cat > /etc/systemd/network/00-mybridge.service <<EOF
+sudo bash -c "cat > /etc/systemd/network/00-mybridge.netdev" <<EOF
 [NetDev]
 Name=br0
 Kind=bridge
@@ -78,10 +78,10 @@ sudo systemctl restart systemd-networkd
 List network interfaces. You should now see the new bridge device.
 
 ```
-sudo etworkctl list
+sudo networkctl list
 ```
 
-We can also view the bridge device by using the `brctl` userpace program.
+We can also view the bridge device by using the `brctl` userspace program.
 
 ```
 sudo brctl show
@@ -90,7 +90,7 @@ sudo brctl show
 We can easily create a veth pair, connect one side to the bridge, and assign the bridge an IP address.
 
 ```
-cat > /etc/systemd/network/01-veth.netdev <<EOF
+sudo bash -c "cat > /etc/systemd/network/01-veth.netdev" <<EOF
 [NetDev]
 Name=veth0
 Kind=veth
@@ -101,7 +101,7 @@ EOF
 ```
 
 ```
-cat > /etc/systemd/network/02-connect-to-bridge.network <<EOF
+sudo bash -c "cat > /etc/systemd/network/02-connect-to-bridge.network" <<EOF
 [Match]
 Name=veth1
 
@@ -111,12 +111,12 @@ EOF
 ```
 
 ```
-cat > /etc/systemd/network/03-ip-on-bridge.network <<EOF
+sudo bash -c "cat > /etc/systemd/network/03-ip-on-bridge.network" <<EOF
 [Match]
 Name=br0
 
 [Network]
-Address=192.168.1.5/24
+Address=192.168.0.1/24
 EOF
 ```
 
@@ -136,26 +136,4 @@ View the one side of the veth pair plugged into the bridge.
 
 ```
 sudo brctl show
-```
-
-In cases where you need to debug networkd, you can easily enable verbose logging by doing the following.
-
-```
-mkdir -p /etc/systemd/system/systemd-networkd.service.d/
-cat > /etc/systemd/system/systemd-networkd.service.d/10-debug.conf <<EOF
-[Service]
-Environment=SYSTEMD_LOG_LEVEL=debug
-EOF
-```
-
-Restart networkd
-
-```
-sudo systemctl restart systemd-networkd
-```
-
-Verify verbose logging is enabled.
-
-```
-journalctl -b -u systemd-networkd --no-pager -f
 ```
