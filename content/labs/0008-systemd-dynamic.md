@@ -7,7 +7,7 @@ module: Systemd
 
 Using environment variables in systemd units.
 
-###### Environment directive
+###### Environment Directive
 
 systemd has an Environment directive which sets environment variables for executed processes. It takes a space-separated list of variable assignments. This option may be specified more than once in which case all listed variables will be set. If the same variable is set twice, the later setting will override the earlier setting. If the empty string is assigned to this option, the list of environment variables is reset, all prior assignments have no effect. Environments directives are used in built-in Container Linux systemd units, for example in etcd2 and flannel.
 
