@@ -81,19 +81,22 @@ resource "null_resource" "local-cluster-assets" {
 
 # Create cluster ssh key pair
 resource "tls_private_key" "cluster-key" {
+  depends_on = ["null_resource.local-cluster-assets"]
   algorithm = "RSA"
 }
 
 # Save cluster private key locally
 resource "local_file" "cluster-private-key" {
-    content  = "${tls_private_key.cluster-key.private_key_pem}"
-    filename = "${local.cluster_dir}/${var.cluster_name}-key"
+  depends_on = ["tls_private_key.cluster-key"]
+  content    = "${tls_private_key.cluster-key.private_key_pem}"
+  filename   = "${local.cluster_dir}/${var.cluster_name}-key"
 }
 
 # Save cluster public key locally
 resource "local_file" "cluster-public-key" {
-    content  = "${tls_private_key.cluster-key.public_key_openssh}"
-    filename = "${local.cluster_dir}/${var.cluster_name}-key.pub"
+  depends_on = ["tls_private_key.cluster-key"]
+  content    = "${tls_private_key.cluster-key.public_key_openssh}"
+  filename   = "${local.cluster_dir}/${var.cluster_name}-key.pub"
 }
 
 # Set permissions on cluster keypair
@@ -110,13 +113,15 @@ resource "null_resource" "local-cluster-permissions" {
 
 # Add public key to AWS
 resource "aws_key_pair" "lab-key" {
+  depends_on = ["tls_private_key.cluster-key"]
   key_name   = "${local.cluster_key_name}"
   public_key = "${tls_private_key.cluster-key.public_key_openssh}"
 }
 
 # Create the local asset directories for each lab environment
 resource "null_resource" "local-lab-assets" {
-  count = "${var.lab_count}"
+  depends_on = ["null_resource.local-cluster-assets"]
+  count      = "${var.lab_count}"
 
   provisioner "local-exec" {
     command = "mkdir -p ${local.cluster_dir}/${format("%s%02d", var.lab_prefix, count.index + var.lab_start)}"
@@ -125,16 +130,14 @@ resource "null_resource" "local-lab-assets" {
 
 # Create ssh keypair for each lab
 resource "tls_private_key" "lab-access-key" {
+  depends_on = ["null_resource.local-lab-assets"]
   algorithm = "RSA"
   count     = "${var.lab_count}"
 }
 
 # Save lab environment private key locally
 resource "local_file" "local-lab-access-private-key" {
-  depends_on = [
-    "tls_private_key.lab-access-key",
-    "null_resource.local-lab-assets"
-  ]
+  depends_on = ["tls_private_key.lab-access-key"]
   count      = "${var.lab_count}"
   content    = "${element(tls_private_key.lab-access-key.*.private_key_pem, count.index)}"
   filename   = "${local.cluster_dir}/${format("%s%02d", var.lab_prefix, count.index + var.lab_start)}/${format("%s%02d-key", var.lab_prefix, count.index + var.lab_start)}"
@@ -142,10 +145,7 @@ resource "local_file" "local-lab-access-private-key" {
 
 # Save lab environment public key locally
 resource "local_file" "local-lab-access-public-key" {
-  depends_on = [
-    "tls_private_key.lab-access-key",
-    "null_resource.local-lab-assets"
-  ]
+  depends_on = ["tls_private_key.lab-access-key"]
   count      = "${var.lab_count}"
   content    = "${element(tls_private_key.lab-access-key.*.public_key_openssh, count.index)}"
   filename   = "${local.cluster_dir}/${format("%s%02d", var.lab_prefix, count.index + var.lab_start)}/${format("%s%02d-key.pub", var.lab_prefix, count.index + var.lab_start)}"
@@ -284,26 +284,35 @@ resource "aws_route53_record" "bastions" {
   records    = ["${element(aws_instance.bastions.*.public_ip, count.index)}"]
 }
 
-resource "null_resource" "coreos_update" {
-  depends_on = ["aws_instance.bastions"]
-  count      = "${var.lab_count}"
-
-  connection {
-    host = "${element(aws_instance.bastions.*.public_ip, count.index)}"
-    user = "${var.bastion_user}"
-    private_key = "${file("${var.assets_dir}/${var.cluster_name}-key")}"
-  }
-
-  provisioner "remote-exec" {
-    inline = [
-      "sudo echo REBOOT_STRATEGY=off >> /etc/coreos/update.conf"
-    ]
-  }
-}
+# resource "null_resource" "coreos_update" {
+#   depends_on = ["aws_instance.bastions"]
+#   count      = "${var.lab_count}"
+#
+#   provisioner "local-exec" {
+#     command = "ssh -i ${local.cluster_dir}/${var.cluster_name}-key ${var.bastion_user}@${element(aws_instance.bastions.*.public_ip, count.index)} /bin/sh -c 'sudo echo REBOOT_STRATEGY=off >> /etc/coreos/update.conf'"
+#   }
+# }
+#
+# resource "null_resource" "lab_hosts" {
+#   depends_on = ["aws_instance.bastions"]
+#   count      = "${var.lab_count}"
+#
+#   provisioner "local-exec" {
+#     command = "ssh -i ${local.cluster_dir}/${var.cluster_name}-key ${var.bastion_user}@${element(aws_instance.bastions.*.public_ip, count.index)} /bin/sh -c 'sudo echo host1    ${element(aws_instance.bastions.*.private_ip, (count.index * 3))} >> /etc/hosts'"
+#   }
+#
+#   provisioner "local-exec" {
+#     command = "ssh -i ${local.cluster_dir}/${var.cluster_name}-key ${var.bastion_user}@${element(aws_instance.bastions.*.public_ip, count.index)} /bin/sh -c 'sudo echo host2    ${element(aws_instance.bastions.*.private_ip, (count.index * 3 + 1))} >> /etc/hosts'"
+#   }
+#
+#   provisioner "local-exec" {
+#     command = "ssh -i ${local.cluster_dir}/${var.cluster_name}-key ${var.bastion_user}@${element(aws_instance.bastions.*.public_ip, count.index)} /bin/sh -c 'sudo echo host3    ${element(aws_instance.bastions.*.private_ip, (count.index * 3 + 2))} >> /etc/hosts'"
+#   }
+# }
 
 # Generate environment data
 data "template_file" "environment" {
-  depends_on = ["null_resource.local-lab-assets"]
+  depends_on = ["aws_instance.lab_nodes"]
   template   = "${file("environment.tpl")}"
   count      = "${var.lab_count}"
 
