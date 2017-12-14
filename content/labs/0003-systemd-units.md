@@ -17,29 +17,23 @@ The `--all` option will add inactive units.
 sudo systemctl list-units --type=service --all
 ```
 
-View enabled and disabled settings for all units.
-
-```
-sudo systemctl list-unit-files --type=service
-```
-
 View only failed services
 
 ```
 sudo systemctl --failed --type=service
 ```
 
-Investigate the status of the Random Number Generator Daemon. The `-l` option shows full output.
+Investigate the status of the Random Number Generator Daemon. The `-l` option shows full output. `--no-pager` removes pagination.
 
 ```
-sudo systemctl status rngd.service -l
+sudo systemctl status update-engine.service -l --no-pager
 ```
 
 Show whether the `sshd` unit is active or enabled.
 
 ```
-sudo systemctl is-active sshd
-sudo systemctl is-enabled sshd
+sudo systemctl is-active sshd.service
+sudo systemctl is-enabled sshd.service
 ```
 
 View the status of the sshd socket unit.
@@ -82,7 +76,7 @@ sudo systemctl --full | grep sshd
 
 By default, Container Linux machines keep time in the Coordinated Universal Time (UTC) zone and synchronize their clocks with the Network Time Protocol (NTP).
 
-View the status of the systemd-timesyncd unit. Use the `no-pager` option to turn off pagination. The `-l` will show full log output.
+View the status of the `systemd-timesyncd` unit.
 
 ```
 sudo systemctl status systemd-timesyncd --no-pager -l
@@ -106,6 +100,12 @@ Start the systemd-timesyncd unit.
 sudo systemctl start systemd-timesyncd
 ```
 
+View the status of the systemd-timesyncd unit and confirm it's active and running.
+
+```
+systemctl status systemd-timesyncd --no-pager -l
+```
+
 The `timedatectl` command displays and sets the date, time, and time zone.
 
 ```
@@ -115,13 +115,13 @@ timedatectl status
 List all available timezones.
 
 ```
-timedatectl list-timezones
+timedatectl list-timezones --no-pager
 ```
 
 Pick a time zone from the list and set it.
 
 ```
-sudo timedatectl set-timezone America/Los_Angeles
+timedatectl set-timezone America/Los_Angeles
 ```
 
 Confirm the date is properly set.
