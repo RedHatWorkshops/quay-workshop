@@ -170,4 +170,28 @@ Customizing Docker Customizing the SSH Daemon Using Environment Variables In sys
 
 
 
+In cases where you need to debug networkd, you can easily enable verbose logging by doing the following.
+
+```
+mkdir -p /etc/systemd/system/systemd-networkd.service.d/
+cat > /etc/systemd/system/systemd-networkd.service.d/10-debug.conf <<EOF
+[Service]
+Environment=SYSTEMD_LOG_LEVEL=debug
+EOF
+```
+
+Restart networkd
+
+```
+sudo systemctl restart systemd-networkd
+```
+
+Verify verbose logging is enabled.
+
+```
+journalctl -b -u systemd-networkd --no-pager -f
+```
+
+
+
 
