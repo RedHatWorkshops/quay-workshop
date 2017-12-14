@@ -86,7 +86,7 @@ Confirm a new image exists.
 docker images
 ```
 
-Run a new container that listens on 8080 on the host and forwards to 80 in the container.
+Run a new container that listens on 8080 on the host and forward to 80 in the container.
 
 ```
 docker run -p 8080:80 -d centos7_httpd /usr/sbin/httpd -DFOREGROUND
