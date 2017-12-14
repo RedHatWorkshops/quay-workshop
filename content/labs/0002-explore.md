@@ -5,10 +5,9 @@ permalink: /lab/explore/
 module: Exploration
 ---
 
-Confirm you are on HOST_1.
+Confirm you are, in fact, on `HOST_1` that is defined on the bastion.
 
 ```
-echo $HOST_1
 ip a show eth0
 ```
 
