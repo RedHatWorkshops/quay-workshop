@@ -5,7 +5,7 @@ permalink: /lab/systemd/networkd/
 module: Systemd
 ---
 
-systemd-networkd is a system daemon that manages network configurations. It detects and configures network devices as they appear. It can also create virtual network devices.
+`systemd-networkd` is a system daemon that manages network configurations. It detects and configures network devices as they appear. It can also create virtual network devices.
 
 There are three types of configuration files. They all use a format similar to systemd unit files.
 
