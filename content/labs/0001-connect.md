@@ -69,3 +69,12 @@ SSH into the first Container Linux host (`host1`) with user `core`.
 ```
 ssh core@host1
 ```
+
+Once logged in, the Container Linux version should be displayed.
+
+{: .console-output}
+```
+Last login: Tue Dec 12 13:32:47 UTC 2017 from 172.31.29.192 on pts/0
+Container Linux by CoreOS stable (1465.8.0)
+Update Strategy: No Reboots
+```
