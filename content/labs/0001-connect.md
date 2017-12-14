@@ -63,8 +63,8 @@ drwxr-xr-x 23 root root 4096 Oct 15 00:06 ..
 drwx------  2 root root 4096 Oct 15 00:06 .ssh
 ```
 
-SSH into `host1`. 
+SSH into the first Container Linux host (`host1`) with user `core`.
 
 ```
-ssh lab@host1
+ssh core@host1
 ```
