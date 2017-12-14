@@ -1,7 +1,7 @@
 ---
 layout: lab
 title: Connecting to the Lab
-permalink: /lab/intro/connect/
+permalink: /lab/connect/
 module: Introduction
 ---
 

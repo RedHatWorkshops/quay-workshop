@@ -1,7 +1,7 @@
 ---
 layout: lab
 title: Exploring Container Linux
-permalink: /lab/intro/connect/
+permalink: /lab/explore/
 module: Exploration
 ---
 
@@ -29,9 +29,3 @@ Output current users on the system.
 ```
 cat /etc/passwd
 ```
-
-
-
-
-
-
