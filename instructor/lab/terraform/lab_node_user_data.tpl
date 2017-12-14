@@ -1,0 +1,1 @@
+{"ignition":{"config":{},"timeouts":{},"version":"2.1.0"},"networkd":{},"passwd":{},"storage":{"files":[{"filesystem":"root","group":{},"path":"/etc/coreos/update.conf","user":{},"contents":{"source":"data:,GROUP%3Dstable%0AREBOOT_STRATEGY%3D%22off%22","verification":{}},"mode":420}]},"systemd":{}}

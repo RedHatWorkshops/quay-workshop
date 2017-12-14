@@ -189,6 +189,13 @@ resource "aws_security_group" "lab_node" {
   vpc_id      = "${data.aws_vpc.default.id}"
 
   ingress {
+    from_port   = 8
+    to_port     = 0
+    protocol    = "icmp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
@@ -201,6 +208,20 @@ resource "aws_security_group" "lab_node" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  ingress {
+    from_port   = 2379
+    to_port     = 2380
+    protocol    = "udp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 }
 
 # Create bastion security group
@@ -208,6 +229,13 @@ resource "aws_security_group" "bastion" {
   name        = "${var.cluster_name}-bastion"
   description = "Bastion security group for ${var.cluster_name} cluster."
   vpc_id      = "${data.aws_vpc.default.id}"
+
+  ingress {
+    from_port   = 8
+    to_port     = 0
+    protocol    = "icmp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   ingress {
     from_port   = 22
@@ -229,6 +257,25 @@ resource "aws_security_group" "bastion" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+# Generate lab node user data
+data "template_file" "lab_node_user_data" {
+  depends_on = ["null_resource.local-lab-access-permissions"]
+  template   = "${file("lab_node_user_data.tpl")}"
+  count      = "${local.lab_node_count}"
+
+  vars {
+    cluster_public_key = "${tls_private_key.cluster-key.public_key_openssh}"
+    lab_public_key     = "${element(tls_private_key.lab-access-key.*.public_key_openssh, count.index)}"
+  }
 }
 
 resource "aws_instance" "lab_nodes" {
@@ -241,12 +288,29 @@ resource "aws_instance" "lab_nodes" {
   instance_type               = "${var.lab_instance_type}"
   key_name                    = "${local.cluster_key_name}"
   vpc_security_group_ids      = ["${aws_security_group.lab_node.id}"]
+  user_data                   = "${element(data.template_file.lab_node_user_data.*.rendered, count.index)}"
   associate_public_ip_address = true
 
   tags {
     Name = "${var.cluster_name}-${var.lab_prefix}-${count.index + 1}"
     createdBy = "${var.lab_created_by}"
     expirationDate = "${var.lab_expiration_date}"
+  }
+}
+
+# Generate bastion user data
+data "template_file" "bastion_user_data" {
+  depends_on = ["aws_instance.lab_nodes"]
+  template   = "${file("bastion_user_data.tpl")}"
+  count      = "${var.lab_count}"
+
+  vars {
+    cluster_public_key = "${tls_private_key.cluster-key.public_key_openssh}"
+    lab_private_key    = "${element(tls_private_key.lab-access-key.*.private_key_pem, count.index)}"
+    lab_public_key     = "${element(tls_private_key.lab-access-key.*.public_key_openssh, count.index)}"
+    lab_node1          = "${element(aws_instance.lab_nodes.*.private_ip, (count.index * 3))}"
+    lab_node2          = "${element(aws_instance.lab_nodes.*.private_ip, (count.index * 3 + 1))}"
+    lab_node3          = "${element(aws_instance.lab_nodes.*.private_ip, (count.index * 3 + 2))}"
   }
 }
 
@@ -261,6 +325,7 @@ resource "aws_instance" "bastions" {
   instance_type               = "${var.bastion_instance_type}"
   key_name                    = "${local.cluster_key_name}"
   vpc_security_group_ids      = ["${aws_security_group.bastion.id}"]
+  user_data                   = "${element(data.template_file.bastion_user_data.*.rendered, count.index)}"
   associate_public_ip_address = true
 
   tags {
@@ -268,6 +333,16 @@ resource "aws_instance" "bastions" {
     createdBy = "${var.lab_created_by}"
     expirationDate = "${var.lab_expiration_date}"
   }
+
+  # provisioner "file" {
+  #   content     = "${tls_private_key.cluster-key.private_key_pem}"
+  #   destination = "/home/lab/.ssh/id_rsa"
+  # }
+  #
+  # provisioner "file" {
+  #   content     = "${tls_private_key.cluster-key.public_key_openssh}"
+  #   destination = "/home/lab/.ssh/id_rsa.pub"
+  # }
 }
 
 data "aws_route53_zone" "lab-zone" {
@@ -284,29 +359,140 @@ resource "aws_route53_record" "bastions" {
   records    = ["${element(aws_instance.bastions.*.public_ip, count.index)}"]
 }
 
-# resource "null_resource" "coreos_update" {
-#   depends_on = ["aws_instance.bastions"]
-#   count      = "${var.lab_count}"
+# Create master instance
+resource "aws_instance" "master" {
+  ami                         = "${data.aws_ami.ubuntu_ami.id}"
+  instance_type               = "${var.master_instance_type}"
+  key_name                    = "${local.cluster_key_name}"
+  associate_public_ip_address = true
+
+  tags {
+    Name = "${var.cluster_name}-${var.master_name_suffix}"
+    createdBy = "${var.lab_created_by}"
+    expirationDate = "${var.lab_expiration_date}"
+  }
+}
+
+data "aws_route53_zone" "master" {
+  name = "${var.domain_name}."
+}
+
+resource "aws_route53_record" "master" {
+  depends_on = ["aws_instance.master"]
+  zone_id    = "${data.aws_route53_zone.master.zone_id}"
+  name       = "${var.cluster_name}.${data.aws_route53_zone.master.name}"
+  type       = "A"
+  ttl        = "300"
+  records    = ["${aws_instance.master.public_ip}"]
+}
+
+# resource "null_resource" "master-artifacts" {
+#   depends_on = ["aws_instance.master"]
 #
-#   provisioner "local-exec" {
-#     command = "ssh -i ${local.cluster_dir}/${var.cluster_name}-key ${var.bastion_user}@${element(aws_instance.bastions.*.public_ip, count.index)} /bin/sh -c 'sudo echo REBOOT_STRATEGY=off >> /etc/coreos/update.conf'"
+#   connection {
+#     host = "${aws_instance.master.public_ip}"
+#     user = "${var.master_user}"
+#     private_key = "${file("${cluster_dir}/${var.cluster_name}-key")}"
+#   }
+#
+#   provisioner "file" {
+#     content = "${file("${var.assets_dir}/${var.cluster_name}-key")}"
+#     destination = "/home/${var.master_user}/.ssh/id_rsa"
+#   }
+#
+#   provisioner "file" {
+#     content = "${file("${var.assets_dir}/${var.cluster_name}-key.pub")}"
+#     destination = "/home/${var.master_user}/.ssh/id_rsa.pub"
+#   }
+#
+#   provisioner "remote-exec" {
+#     inline = [
+#       "sudo chmod 400 /home/${var.master_user}/.ssh/id_rsa",
+#       "sudo chmod 444 /home/${var.master_user}/.ssh/id_rsa.pub",
+#       "sudo chmod 700 /home/${var.master_user}/.ssh"
+#     ]
 #   }
 # }
 #
-# resource "null_resource" "lab_hosts" {
-#   depends_on = ["aws_instance.bastions"]
-#   count      = "${var.lab_count}"
+# resource "null_resource" "master-update" {
+#   depends_on = ["null_resource.master-artifacts"]
 #
-#   provisioner "local-exec" {
-#     command = "ssh -i ${local.cluster_dir}/${var.cluster_name}-key ${var.bastion_user}@${element(aws_instance.bastions.*.public_ip, count.index)} /bin/sh -c 'sudo echo host1    ${element(aws_instance.bastions.*.private_ip, (count.index * 3))} >> /etc/hosts'"
+#   connection {
+#     host = "${aws_instance.master.public_ip}"
+#     user = "${var.master_user}"
+#     private_key = "${file("${var.assets_dir}/${var.cluster_name}-key")}"
 #   }
 #
-#   provisioner "local-exec" {
-#     command = "ssh -i ${local.cluster_dir}/${var.cluster_name}-key ${var.bastion_user}@${element(aws_instance.bastions.*.public_ip, count.index)} /bin/sh -c 'sudo echo host2    ${element(aws_instance.bastions.*.private_ip, (count.index * 3 + 1))} >> /etc/hosts'"
+#   provisioner "remote-exec" {
+#     inline = [
+#       "sudo apt-get update"
+#     ]
+#   }
+# }
+#
+# resource "null_resource" "master-packages" {
+#   depends_on = ["null_resource.master-update"]
+#
+#   connection {
+#     host = "${aws_instance.master.public_ip}"
+#     user = "${var.master_user}"
+#     private_key = "${file("${var.assets_dir}/${var.cluster_name}-key")}"
 #   }
 #
-#   provisioner "local-exec" {
-#     command = "ssh -i ${local.cluster_dir}/${var.cluster_name}-key ${var.bastion_user}@${element(aws_instance.bastions.*.public_ip, count.index)} /bin/sh -c 'sudo echo host3    ${element(aws_instance.bastions.*.private_ip, (count.index * 3 + 2))} >> /etc/hosts'"
+#   provisioner "remote-exec" {
+#     inline = [
+#       "sudo apt-get install -y apache2-utils docker.io fail2ban git nginx"
+#     ]
+#   }
+# }
+#
+# resource "null_resource" "master-docker" {
+#   depends_on = ["null_resource.master-packages"]
+#
+#   connection {
+#     host = "${aws_instance.master.public_ip}"
+#     user = "${var.master_user}"
+#     private_key = "${file("${var.assets_dir}/${var.cluster_name}-key")}"
+#   }
+#
+#   provisioner "remote-exec" {
+#     inline = [
+#       "sudo usermod -aG docker ubuntu"
+#     ]
+#   }
+# }
+#
+# data "template_file" "master-nginx" {
+#   depends_on = ["null_resource.master-docker"]
+#   template   = "${file("nginx.tpl")}"
+#
+#   vars {
+#     web_root    = "${var.master_web_root}"
+#     server_name = "${var.cluster_name}.${var.domain_name}"
+#   }
+# }
+#
+# resource "null_resource" "master-nginx" {
+#   depends_on = ["null_resource.master-nginx"]
+#
+#   connection {
+#     host = "${aws_instance.master.public_ip}"
+#     user = "${var.master_user}"
+#     private_key = "${file("${var.assets_dir}/${var.cluster_name}-key")}"
+#   }
+#
+#   provisioner "file" {
+#     content = "${data.template_file.master-nginx.rendered}"
+#     destination = "/home/${var.master_user}/training.conf"
+#   }
+#
+#   provisioner "remote-exec" {
+#     inline = [
+#       "sudo htpasswd -bc /etc/nginx/.htpasswd ${var.master_site_username} ${var.master_site_password}",
+#       "sudo mv /home/${var.master_user}/training.conf /etc/nginx/sites-available/training",
+#       "sudo ln -s /etc/nginx/sites-available/training /etc/nginx/sites-enabled/training",
+#       "sudo systemctl restart nginx"
+#     ]
 #   }
 # }
 

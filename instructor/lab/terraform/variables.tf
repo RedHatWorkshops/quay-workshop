@@ -101,3 +101,39 @@ variable "lab_cluster_count" {
   type        = "string"
   default     = "3"
 }
+
+variable "master_instance_type" {
+  description = "Master instance type"
+  type        = "string"
+  default     = "t2.micro"
+}
+
+variable "master_name_suffix" {
+  description = "Master name suffix"
+  type        = "string"
+  default     = "master"
+}
+
+variable "master_user" {
+  description = "Master user"
+  type        = "string"
+  default     = "ubuntu"
+}
+
+variable "master_web_root" {
+  description = "Master web root"
+  type        = "string"
+  default     = "/opt/training/training-k8s-fundamentals/content/_site"
+}
+
+variable "master_site_username" {
+  description = "Master site username"
+  type        = "string"
+  default     = "kubernetes"
+}
+
+variable "master_site_password" {
+  description = "Master site password"
+  type        = "string"
+  default     = "coreostrainme"
+}
