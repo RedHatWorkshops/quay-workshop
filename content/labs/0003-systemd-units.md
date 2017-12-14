@@ -5,16 +5,15 @@ permalink: /lab/systemd/unitsoverview
 module: Systemd
 ---
 
-Query the state of all units to verify system startup.
-
-```
-sudo systemctl --type=service
-```
-
-List the active state of all loaded units. Optionally, limit the type of unit. The --all option will add inactive units.
+List the active state of all loaded units. Optionally, limit the type of unit. 
 
 ```
 sudo systemctl list-units --type=service
+```
+
+The `--all` option will add inactive units.
+
+```
 sudo systemctl list-units --type=service --all
 ```
 
