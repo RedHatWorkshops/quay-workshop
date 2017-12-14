@@ -7,12 +7,6 @@ module: Systemd
 
 Container Linux uses systemd timers to schedule tasks. This is comparable to a crontab job.
 
-List all timers on the system.
-
-```
-sudo systemctl list-timers
-```
-
 List all *enabled* timers on the system.
 
 ```
@@ -43,4 +37,3 @@ Description=Run date.service every 10 minutes
 [Timer]
 OnCalendar=*:0/10
 ```
-
