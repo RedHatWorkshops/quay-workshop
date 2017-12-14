@@ -37,7 +37,6 @@ ssh -i labXX-key lab@cl-labXX-bastion.coreostrain.me
 The bastion node is a standard Ubuntu Linux machine and the `lab` user has full
 sudoers access to install any needed utilities.
 
-{: .console-output}
 ```
 $ whoami
 lab
