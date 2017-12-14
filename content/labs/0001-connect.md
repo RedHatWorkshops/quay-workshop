@@ -31,7 +31,7 @@ Connect to the bastion node for the lab environment using SSH. Make sure to
 replace `labXX` with your actual lab number (for example: `lab01`).
 
 ```
-ssh -i labXX-key lab@cl-labXX-bastion.coreostrain.me
+ssh -i labXX-key lab@sbx-labXX-bastion.coreostrain.me
 ```
 
 The bastion node is a standard Ubuntu Linux machine and the `lab` user has full
