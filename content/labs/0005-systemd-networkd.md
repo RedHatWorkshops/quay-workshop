@@ -9,12 +9,11 @@ systemd-networkd is a system daemon that manages network configurations. It dete
 
 There are three types of configuration files. They all use a format similar to systemd unit files.
 
-`.network` files. They will apply a network configuration for a matching device
-`.netdev` files. They will create a virtual network device for a matching environment
-`.link` files. When a network device appears, udev will look for the first matching .link file
+`.link` files: when a network device appears, udev will look for the first matching `.link` file via `net_setup_link`
+`.network` files: apply a network configuration for a matching device (includes ip address, subnet, gateway, etc.)
+`.netdev` files: They will create a virtual network device for a matching environment. These includes bridges, veth pairs, tap interfaces, tunnels, etc.
 
-the * joker can be used in VALUE (e.g en* will match any Ethernet device)
-
+A wildcard (`*`) can be used in VALUE (e.g `en*` will match any Ethernet device).
 
 Files are read from the following (also supports a "drop-in" directory, i.e. `foo.network.d` with files containing `.conf` suffix.)
 
@@ -28,32 +27,39 @@ View the current status of the systemd-networkd unit.
 sudo systemctl status systemd-networkd
 ```
 
-Network link configuration is performed by the `net_setup_link` udev builtin. 
-
-View all `.link` files 
+View any possible `.link`, `.network`, or `.netdev` files.
 
 ```
-ls /usr/lib/systemd/network/
+ls /etc/systemd/system/ | grep {.network,.link,.netdev}
 ```
 
 ```
-ls /etc/systemd/network/
+ls /run/systemd/network | grep {.network,.link,.netdev}
 ```
+
+```
+ls /usr/lib/systemd/network | grep {.network,.link,.netdev}
+```
+
+View the default `.link` file.
+
 ```
 cat /usr/lib/systemd/network/99-default.link
 ```
 
-networkctl may be used to introspect the state of the network links as seen by systemd-networkd
+`networkctl` may be used to introspect the state of the network links as seen by systemd-networkd.
 
 ```
-networkctl list
+sudo networkctl list
 ```
 
+View more details of the second interface.
+
 ```
-networkctl status 2
+sudo networkctl status 2
 ```
 
-Create a bridge device by dropping in a `.netdev` file.
+Let's create a bridge device by creating a `.netdev` file.
 
 ```
 cat > /etc/systemd/network/00-mybridge.service <<EOF
@@ -72,7 +78,13 @@ sudo systemctl restart systemd-networkd
 List network interfaces. You should now see the new bridge device.
 
 ```
-networkctl list
+sudo etworkctl list
+```
+
+We can also view the bridge device by using the `brctl` userpace program.
+
+```
+sudo brctl show
 ```
 
 We can easily create a veth pair, connect one side to the bridge, and assign the bridge an IP address.
@@ -114,6 +126,18 @@ Restart networkd to apply the newly added network configuration.
 sudo systemctl restart systemd-networkd
 ```
 
+View the newly created veth pair.
+
+```
+ip a
+```
+
+View the one side of the veth pair plugged into the bridge.
+
+```
+sudo brctl show
+```
+
 In cases where you need to debug networkd, you can easily enable verbose logging by doing the following.
 
 ```
@@ -133,5 +157,5 @@ sudo systemctl restart systemd-networkd
 Verify verbose logging is enabled.
 
 ```
-journalctl -b -u systemd-networkd
+journalctl -b -u systemd-networkd --no-pager -f
 ```

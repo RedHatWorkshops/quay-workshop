@@ -5,9 +5,51 @@ permalink: /lab/systemd/dropins/
 module: Systemd
 ---
 
+A "drop-in" directory is a way to append or overwrite existing unit files. This is extremely useful because it allows system administrators to modify systemd unit behavior without destroying the default units located in `/usr/lib/systemd/network`. 
+
+To create a drop-in, one creates a drop-in directory with the naming convention `foo.network.d` with a file or files containing the `.conf` suffix. For example, `/etc/systemd/system/foo.network.d/logging.conf`.
+
+Let's create a drop-in for the the `docker.service` residing at `/usr/lib/systemd/system/docker.service.d/00-docker-logging.conf`
+
+```
+mkdir -p /etc/systemd/system/docker.service.d/
+cat > /etc/systemd/system/systemd-networkd.service.d/00-logging.conf <<EOF
+[Service]
+Environment=SYSTEMD_LOG_LEVEL=debug
+EOF
+```
+
+Maybe daemon reload here.......
+
+
+Restart docker.service.
+
+```
+sudo systemctl restart systemd-networkd
+```
+
+Verify verbose logging is enabled.
+
+```
+journalctl -b -u systemd-networkd --no-pager -f
+```
+
+
+```
+sudo systemctl status systemd-networkd
+``
+
+
+
+
+
+
+
+
+
 Using systemd drop-in units
 
-There are two methods of overriding default Container Linux settings in unit files: copying the unit file from /usr/lib64/systemd/system to /etc/systemd/system and modifying the chosen settings. Alternatively, one can create a directory named unit.d within /etc/systemd/system and place a drop-in file name.conf there that only changes the specific settings one is interested in. Note that multiple such drop-in files are read if present.
+There are two methods of overriding default Container Linux settings in unit files: copying the unit file from /usr/lib/systemd/system to /etc/systemd/system and modifying the chosen settings. Alternatively, one can create a directory named unit.d within /etc/systemd/system and place a drop-in file name.conf there that only changes the specific settings one is interested in. Note that multiple such drop-in files are read if present.
 
 The advantage of the first method is that one easily overrides the complete unit, the default Container Linux unit is not parsed at all anymore. It has the disadvantage that improvements to the unit file supplied by Container Linux are not automatically incorporated on updates.
 
@@ -47,6 +89,13 @@ systemctl daemon-reload
 
 And restart modified service if necessary (in our example we have changed only RestartSec option, but if you want to change environment variables, ExecStart or other run options you have to restart service):
 
+
+
+
+
+
+
+
 systemctl restart fleet.service
 Here is how that could be implemented within a Container Linux Config:
 
@@ -60,6 +109,8 @@ systemd:
             [Service]
             RestartSec=60s
 This change is small and targeted. It is the easiest way to tweak unit's parameters.
+
+
 
 Override the whole unit file
 Another way is to override whole systemd unit. Copy default unit file /usr/lib64/systemd/system/fleet.service to /etc/systemd/system/fleet.service and change the chosen settings:
@@ -101,6 +152,11 @@ This is the raw machine configuration, which is not intended for editing. Learn 
   "passwd": {}
 }
 List drop-ins
+
+
+
+
+
 To see all runtime drop-in changes for system units run the command below:
 
 systemd-delta --type=extended
@@ -109,3 +165,9 @@ Other systemd examples
 For another real systemd examples, check out these documents:
 
 Customizing Docker Customizing the SSH Daemon Using Environment Variables In systemd Units
+
+
+
+
+
+
