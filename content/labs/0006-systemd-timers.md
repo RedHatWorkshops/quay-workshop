@@ -39,3 +39,15 @@ Description=Run date.service every 10 minutes
 OnCalendar=*:0/10
 EOF
 ```
+
+Start the timer.
+
+```
+sudo systemctl start date.timer
+```
+
+List all timers. The job should trigger in 10 minutes.
+
+```
+sudo systemctl list-timers --all
+```
