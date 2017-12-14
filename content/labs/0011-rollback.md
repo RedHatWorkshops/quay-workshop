@@ -1,7 +1,7 @@
 ---
 layout: lab
-title: Peforming a Manual Rollback
-permalink: /lab/updates/performingrollback/
+title: Peforming Manual Rollbacks
+permalink: /lab/updates/performing-rollback/
 module: Updates
 ---
 
