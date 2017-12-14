@@ -41,7 +41,7 @@ passwd: password changed.
 To assign an SSH key, run:
 
 ```
-update-ssh-keys -u user1 -a user1 user1.pem
+sudo update-ssh-keys -u user1 -a user1 user1.pem
 ```
 
 ###### Grant sudo Access
@@ -51,6 +51,12 @@ If you trust the user, you can grant administrative privileges using `visudo`.
 This command should be run as root to avoid losing sudo access in the event of a
 failure. Instead of editing /etc/sudo.conf directly you will create a new file
 under the `/etc/sudoers.d/` directory.
+
+Run the following commands as `root`.
+
+```
+sudo su -
+```
 
 When you run `visudo`, it is required that you specify which file you are
 attempting to edit with the -f argument:
