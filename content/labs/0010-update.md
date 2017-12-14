@@ -1,15 +1,19 @@
 ---
 layout: lab
-title: Disk Layout/Performing an Update
-permalink: /lab/updates/performingupdate/
+title: Disk Layout / Performing Updates
+permalink: /lab/updates/performing-updates/
 module: Updates
 ---
 
-Container Linux is designed to be updated automatically with different schedules per channel.
+Container Linux is designed to be updated automatically with different schedules
+per channel. CoreOS is responsible for managing all updates and schedules.
 
-CoreOS is responsible for managing all updates and schedules. Updates are always turned on by default. The `update-engine` systemd unit is responsible for observing the current COREOS_RELEASE_VERSION at `/usr/share/coreos/release` and determing whether an update is required. It detects new updates 10 minutes after boot and roughly every hour after that.
+Updates are always turned on by default. The `update-engine` systemd unit is
+responsible for observing the current `COREOS_RELEASE_VERSION` at
+`/usr/share/coreos/release` and determining whether an update is required. It
+detects new updates 10 minutes after boot and roughly every hour after that.
 
-Here is an example of a package: https://update.release.core-os.net/amd64-usr/1576.4.0/update.gz
+Here is an example of a package: [https://update.release.core-os.net/amd64-usr/1576.4.0/update.gz](https://update.release.core-os.net/amd64-usr/1576.4.0/update.gz)
 
 ###### Channels
 
@@ -73,7 +77,7 @@ We can manually force an update attempt by running the `upate_engine_client -upd
 sudo update_engine_client -update
 ```
 
-Hint: keep the `update-engine.service` logs open to see output in real-time.
+__Hint__: keep the `update-engine.service` logs open to see output in real-time.
 
 ```
 sudo journalctl -u update-engine --no-pager -f
