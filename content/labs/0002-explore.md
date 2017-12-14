@@ -12,23 +12,25 @@ echo $HOST_1
 ip a show eth0
 ```
 
-Output information about the operating system.
+Output information about the Container Linux operating system.
 
 ```
 cat /etc/os-release
 ```
 
-Confirm the current kernel version.
+Confirm the current Linux kernel version.
 
 ```
 uname -a
 ```
 
-Output current users.
+Output current users on the system.
 
 ```
 cat /etc/passwd
 ```
+
+
 
 
 

@@ -1,5 +1,33 @@
 ---
 layout: lab
+title: Setting up etcd
+permalink: /lab/provisioning/coreosmetadataservice/
+module: Provisioning
+---
+
+/usr/bin/coreos-metadata --provider=ec2 --attributes=/run/metadata/coreos
+
+plus ignition
+
+
+
+
+
+systemc
+
+
+
+
+
+
+
+
+
+
+
+
+---
+layout: lab
 title: Dynamic Data
 permalink: /lab/systemd/dynamicdata/
 module: Systemd
@@ -71,3 +99,4 @@ ExecStartPre=/usr/bin/etcdctl set /services/nginx '{"host": "%H", "ipv4_addr": $
 ExecStart=/usr/bin/docker run --rm --name nginx -p ${DEFAULT_IPV4}:80:80 nginx
 ExecStop=/usr/bin/docker stop nginx
 ExecStopPost=/usr/bin/etcdctl rm /services/nginx
+

@@ -37,7 +37,6 @@ ssh -i labXX-key lab@cl-labXX-bastion.coreostrain.me
 The bastion node is a standard Ubuntu Linux machine and the `lab` user has full
 sudoers access to install any needed utilities.
 
-{: .console-output}
 ```
 $ whoami
 lab
@@ -62,4 +61,10 @@ drwxr-xr-x 23 root root 4096 Oct 15 00:06 ..
 -rw-r--r--  1 root root 3106 Oct 22  2015 .bashrc
 -rw-r--r--  1 root root  148 Aug 17  2015 .profile
 drwx------  2 root root 4096 Oct 15 00:06 .ssh
+```
+
+SSH into the first Container Linux host (`host1`) with user `core`.
+
+```
+ssh core@host1
 ```
