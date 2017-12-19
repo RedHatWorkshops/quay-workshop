@@ -266,6 +266,21 @@ resource "aws_security_group" "bastion" {
   }
 }
 
+# Generate authorized keys data
+data "template_file" "lab_node_authorized_keys" {
+  depends_on = [
+    "tls_private_key.cluster-key",
+    "tls_private_key.lab-access-key"
+  ]
+  template   = "${file("authorized_keys.tpl")}"
+  count      = "${local.lab_node_count}"
+
+  vars {
+    cluster_public_key = "${tls_private_key.cluster-key.public_key_openssh}"
+    lab_public_key     = "${element(tls_private_key.lab-access-key.*.public_key_openssh, count.index)}"
+  }
+}
+
 # Generate lab node user data
 data "template_file" "lab_node_user_data" {
   depends_on = ["null_resource.local-lab-access-permissions"]
@@ -295,6 +310,16 @@ resource "aws_instance" "lab_nodes" {
     Name = "${var.cluster_name}-${var.lab_prefix}-${count.index + 1}"
     createdBy = "${var.lab_created_by}"
     expirationDate = "${var.lab_expiration_date}"
+  }
+
+  connection {
+    user     = "${var.lab_instance_user}"
+    private_key = "${tls_private_key.cluster-key.private_key_pem}"
+  }
+
+  provisioner "file" {
+    content     = "${element(data.template_file.lab_node_authorized_keys.*.rendered, count.index)}"
+    destination = "/home/${var.lab_instance_user}/.ssh/authorized_keys"
   }
 }
 
@@ -334,15 +359,30 @@ resource "aws_instance" "bastions" {
     expirationDate = "${var.lab_expiration_date}"
   }
 
-  # provisioner "file" {
-  #   content     = "${tls_private_key.cluster-key.private_key_pem}"
-  #   destination = "/home/lab/.ssh/id_rsa"
-  # }
-  #
-  # provisioner "file" {
-  #   content     = "${tls_private_key.cluster-key.public_key_openssh}"
-  #   destination = "/home/lab/.ssh/id_rsa.pub"
-  # }
+  connection {
+    user     = "ubuntu"
+    private_key = "${tls_private_key.cluster-key.private_key_pem}"
+  }
+
+  provisioner "file" {
+    content     = "${element(tls_private_key.lab-access-key.*.private_key_pem, count.index)}"
+    destination = "/home/${var.bastion_user}/${var.cluster_name}-${format("%s%02d-key", var.lab_prefix, count.index + 1)}"
+  }
+
+  provisioner "file" {
+    content     = "${element(tls_private_key.lab-access-key.*.public_key_openssh, count.index)}"
+    destination = "/home/${var.bastion_user}/${var.cluster_name}-${format("%s%02d-key.pub", var.lab_prefix, count.index + 1)}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo cp /home/${var.bastion_user}/${var.cluster_name}-${format("%s%02d-key", var.lab_prefix, count.index + 1)} /home/${var.lab_prefix}/.ssh/id_rsa",
+      "sudo cp /home/${var.bastion_user}/${var.cluster_name}-${format("%s%02d-key.pub", var.lab_prefix, count.index + 1)} /home/${var.lab_prefix}/.ssh/id_rsa.pub",
+      "sudo chmod 0600 /home/${var.lab_prefix}/.ssh/id_rsa",
+      "sudo chmod 0644 /home/${var.lab_prefix}/.ssh/id_rsa.pub",
+      "sudo chown -R ${var.lab_prefix}: /home/${var.lab_prefix}"
+    ]
+  }
 }
 
 data "aws_route53_zone" "lab-zone" {
