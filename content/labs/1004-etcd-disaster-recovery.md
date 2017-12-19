@@ -3,7 +3,6 @@ layout: lab
 title: etcd Disaster Recovery
 permalink: /lab/etcd/disaster-recovery/
 module: etcd
-published: false
 ---
 
 ## Snapshotting the keyspace
