@@ -96,6 +96,12 @@ variable "lab_instance_type" {
   default     = "t2.micro"
 }
 
+variable "lab_instance_user" {
+  description = "Lab instance user"
+  type        = "string"
+  default     = "core"
+}
+
 variable "lab_cluster_count" {
   description = "Lab cluster count"
   type        = "string"
