@@ -3,7 +3,6 @@ layout: lab
 title: Setting up etcd
 permalink: /lab/etcd/settingupetcd/
 module: etcd
-published: false
 ---
 
 
