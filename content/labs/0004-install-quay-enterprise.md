@@ -1,7 +1,7 @@
 ---
 layout: lab
-title: Deploy a Relational Database
-permalink: /lab/install/
+title: Deploy Quay Enterprise
+permalink: /lab/install/quay-enterprise
 module: Installation
 ---
 

@@ -1,7 +1,7 @@
 ---
 layout: lab
 title: Deploy a Relational Database
-permalink: /lab/install/
+permalink: /lab/install/mysql
 module: Installation
 ---
 
