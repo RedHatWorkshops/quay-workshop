@@ -7,26 +7,6 @@ module: Introduction
 
 #### Connect
 
-You will be given a ZIP archive that contains the SSH key pair for your lab
-environment. Extract the archive somewhere convenient on your local machine.
-
-```
-unzip labXX.zip
-```
-
-Once the archive has been extracted, there should be a public and private key,
-as well as a Putty formatted version of the private key for Windows users.
-
-{: .console-output}
-```
-$ ls -l
-total 32
--r--------  1 lab  staff  1679 Oct 17 11:09 labXX-key
--r--------  1 lab  staff  1438 Oct 17 11:09 labXX-key.ppk
--r--------  1 lab  staff   381 Oct 17 11:09 labXX-key.pub
--rw-r--r--  1 lab  staff  3208 Oct 17 11:23 labXX.zip
-```
-
 Connect to the bastion node for the lab environment using SSH. Make sure to
 replace `labXX` with your actual lab number (for example: `lab01`).
 
@@ -63,18 +43,8 @@ drwxr-xr-x 23 root root 4096 Oct 15 00:06 ..
 -rw-r--r--  1 root root  148 Aug 17  2015 .profile
 drwx------  2 root root 4096 Oct 15 00:06 .ssh
 ```
-
-SSH into the first Container Linux host (`host1`) with user `core`.
+Verify connectivity to the Kubernetes lab environment
 
 ```
-ssh core@host1
-```
-
-Once logged in, the Container Linux version should be displayed.
-
-{: .console-output}
-```
-Last login: Tue Dec 12 13:32:47 UTC 2017 from 172.31.29.192 on pts/0
-Container Linux by CoreOS stable (1465.8.0)
-Update Strategy: No Reboots
+kubectl get nodes
 ```
