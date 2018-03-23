@@ -1,6 +1,6 @@
 # lab
 
-Terraform artifacts for deploying a Container Linux training environment.
+Terraform artifacts for deploying a Quay Essentials training environment.
 
 ### Overview
 
