@@ -202,4 +202,21 @@ Database Name: `enterpriseregistrydb`
 
 When prompted, select `Restart Container`.
 
+Create your Quay Enterprise SuperUser (Admin) account. Only SuperUsers can edit configuration settings.
 
+Username: `admin`
+Email address: `admin@coreostrain.me`
+Password: `coreostrainme`
+
+Once you arrive on the primary configuration screen, we will only provide the Redis instance information.
+
+Redis Hostname: 'quay-enterprise-redis'
+Redis Port: '6379'
+
+Select `Save Configuration` and `Restart Container`.
+
+After the container starts back up, verify all Quay Enterprise services are up and you get back a status code 200.
+
+```
+curl http://<YOUR-AMAZON-ELB>/health/endtoend
+```
