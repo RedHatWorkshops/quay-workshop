@@ -35,27 +35,17 @@ View the history of the image
 docker history alpine
 ```
 
+```
+docker inspect alpine
+```
+
 Tag the alpine the image
 
 ```
 docker tag alpine $QUAY/admin/mypublicrepo:v1
 ```
 
-Attempt to push the image to the repository. This will fail. Although it is a public repo, only pulling is allowed by everyone. You must grant explicity access for push.
-
-```
-docker push $QUAY/admin/mypublicrepo:v1
-```
-
-From the Quay Enterprise dashboard, navigate to Account Settings and `Generate Encrypted Password` under Docker CLI Password.  Copy and paste your Encrypted Password.
-
-Use the `docker login` command to automatically populate your docker config file at `/home/lab/.docker/config.json`.
-
-```
-docker login -u="admin" -p="YOUR_ENCRYPTED_PASSWORD" $QUAY
-```
-
-Now attempt to the push the image to your public repo.
+Attempt to push the image to the repository.
 
 ```
 docker push $QUAY/admin/mypublicrepo:v1
@@ -84,6 +74,4 @@ curl -H "Content-Type: application/json" -X POST http://a73d7f7fe2e6511e8875c069
 ```
 
 More information on generating API tokens can be found here.
-
-
 

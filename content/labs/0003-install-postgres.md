@@ -41,7 +41,7 @@ kubectl create secret generic postgres-superuser-pass --from-literal=password=co
 Create a Postgres StatefulSet and Service
 
 ```
-kubectl create -f - <<EOF
+kubectl create -f - <<\EOF
 apiVersion: v1
 kind: Service
 metadata:
@@ -135,5 +135,3 @@ kubectl run -it --rm --image=postgres:10 --restart=Never psql -- psql -h quay-po
 To list databases run `\l`.
 
 To exit, `\quit`.
-
-
