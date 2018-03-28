@@ -5,7 +5,7 @@ permalink: /lab/docker/install/
 module: Docker
 ---
 
-Install Docker on your bastion host. Beware of installing via docker.io. This will give you an older version of Docker.
+Install Docker on your bastion host. Beware when installing the docker.io package. This will give you an older version of Docker.
 
 ```
 # sudo apt-get install -y docker.io

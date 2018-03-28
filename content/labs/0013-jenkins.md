@@ -11,7 +11,6 @@ First, create a namespace to deploy our canary and production deployments.
 kubectl create namespace monitoring-demo
 ```
 
-
 Install Helm, the Kubernetes Package Manager.
 
 ```
