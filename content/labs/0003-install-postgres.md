@@ -1,7 +1,7 @@
 ---
 layout: lab
 title: Deploy a Relational Database
-permalink: /lab/install/postgres
+permalink: /lab/install/postgres/
 module: Installation
 ---
 
