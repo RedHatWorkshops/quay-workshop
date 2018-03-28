@@ -5,13 +5,13 @@ permalink: /lab/install/postgres
 module: Installation
 ---
 
-List all namespaces in your Kubernetes lab environmnet
+List all namespaces in your Kubernetes lab environment.
 
 ```
 kubectl get namespaces
 ```
 
-Create a new namespace for Quay Enterprise
+Create a new namespace for Quay Enterprise.
 
 ```
 kubectl create namespace quay-enterprise
@@ -32,13 +32,13 @@ parameters:
 EOF
 ```
 
-Create a Postgres superuser password
+Create a Postgres superuser password.
 
 ```
-kubectl create secret generic postgres-superuser-pass --from-literal=password=coreostrainme
+kubectl -n quay-enterprise create secret generic postgres-superuser-pass --from-literal=password=coreostrainme
 ```
 
-Create a Postgres StatefulSet and Service
+Create a Postgres StatefulSet and Service.
 
 ```
 kubectl create -f - <<\EOF
@@ -122,14 +122,14 @@ EOF
 Confirm the statefulset and its pod have been successfully created.
 
 ```
-kubectl get statefulset -n quay-enterprise
-kubectl get pods -n quay-enterprise
+kubectl -n quay-enterprise get statefulset
+kubectl -n quay-enterprise get pods
 ```
 
 Confirm you can successfully connect to the database. Enter password `coreostrainme`
 
 ```
-kubectl run -it --rm --image=postgres:10 --restart=Never psql -- psql -h quay-postgres-service -U coreosuser -d enterpriseregistrydb
+kubectl -n quay-enterprise run -it --rm --image=postgres:10 --restart=Never psql -- psql -h quay-postgres-service -U coreosuser -d enterpriseregistrydb
 ```
 
 To list databases run `\l`.

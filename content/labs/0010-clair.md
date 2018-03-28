@@ -5,10 +5,32 @@ permalink: /lab/clair/installing/
 module: Clair
 ---
 
+Open the **Super User Admin Panel** and go to **Registry Settings**.
+
+Go to **Security Scanner** and enable security scanning.
+
+Verify a valid key for `security_scanner` exists and enter the Security Scanner Endpoint: `http://clair:6060`.
+
+Select **Save Configuration Changes**.
+
+To connect Quay Enterprise securely to the scanner, select the key graphic on the **Super User Admin Panel**.
+
+Select **Have the service provide a key**.
+
+
+
+kubectl -n quay-enterprise patch deployment quay-enterprise-app --patch "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}"
+
+Open the Quay Enteprise UI and notice that we now have a new section in our namespace called *Builds*.
+
+
+
+
+
 Connect to the database. Enter password `coreostrainme`
 
 ```
-kubectl run -it --rm --image=postgres:10 --restart=Never psql -- psql -h quay-postgres-service -U coreosuser -d enterpriseregistrydb
+kubectl -n quay-enterprise run -it --rm --image=postgres:10 --restart=Never psql -- psql -h quay-postgres-service -U coreosuser -d enterpriseregistrydb
 ```
 
 Once you are at the database prompt, create a new database named clair, confirm, and quit.
@@ -18,7 +40,7 @@ enterpriseregistrydb=# create database clair;
 enterpriseregistrydb=# \l;
 enterpriseregistrydb=# \quit;
 ```
-
+```
 cat > config.yaml <<EOF
 clair:
   database:
@@ -26,7 +48,7 @@ clair:
     options:
       # A PostgreSQL Connection string pointing to the Clair Postgres database.
       # Documentation on the format can be found at: http://www.postgresql.org/docs/9.4/static/libpq-connect.html
-      source: postgresql://postgres@quay-postgres-service:5432/clairtest?sslmode=disable
+      source: postgresql://coreosuser:coreostrainme@quay-postgres-service:5432/clair?sslmode=disable
       cachesize: 16384
   api:
     # The port at which Clair will report its health status. For example, if Clair is running at
@@ -49,7 +71,7 @@ clair:
       http:
         # QUAY_ENDPOINT defines the endpoint at which Quay Enterprise is running.
         # For example: https://myregistry.mycompany.com
-        endpoint: https://a3eaef60230b611e8875c069e2081a5e-2100189722.us-east-1.elb.amazonaws.com/secscan/notify
+        endpoint: https://$QUAY/secscan/notify
         proxy: http://localhost:6063
 
 jwtproxy:
@@ -73,7 +95,7 @@ jwtproxy:
             options:
               # QUAY_ENDPOINT defines the endpoint at which Quay Enterprise is running.
               # For example: https://myregistry.mycompany.com
-              registry: https://a3eaef60230b611e8875c069e2081a5e-2100189722.us-east-1.elb.amazonaws.com/keys/
+              registry: https://$QUAY/keys/
 
 
   verifier_proxies:
@@ -98,12 +120,13 @@ jwtproxy:
         options:
           # QUAY_ENDPOINT defines the endpoint at which Quay Enterprise is running.
           # Example: https://myregistry.mycompany.com
-          registry: https://a3eaef60230b611e8875c069e2081a5e-2100189722.us-east-1.elb.amazonaws.com/keys/
+          registry: https://$QUAY/keys/
 EOF
+```
 
-
-kubectl create configmap clair-config --from-file=config.yaml=config.yaml
-
+```
+kubectl -n quay-enterprise create configmap clair-config --from-file=config.yaml=config.yaml
+```
 
 kubectl create -f - <<EOF
 apiVersion: extensions/v1beta1
@@ -127,16 +150,20 @@ spec:
       containers:
       - name: quay-enterprise-clair
         image: quay.io/coreos/clair-jwt:v2.0.0
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 5; /bin/cat /usr/local/share/ca-certificates/ca.crt >> /etc/ssl/certs/ca-certificates.crt"]
         volumeMounts:
-        - mountPath: /config
+        - mountPath: /config/
           name: clair-config
-        - mountPath: /usr/local/share/ca-certificates
-          name: ca
+        - mountPath: /usr/local/share/ca-certificates/
+          name: rootca
       volumes:
       - name: clair-config
         configMap:
           name: clair-config
-      - name: ca
+      - name: rootca
         secret:
           secretName: ca.crt
       imagePullSecrets:
@@ -153,18 +180,25 @@ spec:
     - protocol: TCP
       port: 6060
       targetPort: 6060
-      name: http
+      name: clair
     - protocol: TCP
       port: 6061
       targetPort: 6061
-      name: https
+      name: clair-health
   selector:
     quay-enterprise-component: clair
 EOF
-EOF
 
+Verify the clair logs.
 
+```
+CLAIR_POD=`kubectl -n quay-enterprise get pods -l quay-enterprise-component=clair -o jsonpath={$.items[*].metadata.name}`
+kubectl -n quay-enterprise logs $CLAIR_POD -f
+```
 
+Confirm that the clair service is healthy.
 
-
-
+```
+APP_POD=`kubectl -n quay-enterprise get pods -l quay-enterprise-component=app -o jsonpath={$.items[*].metadata.name}`
+kubectl -n quay-enterprise exec -it $APP_POD -- curl -X GET -I http://clair:6061/health
+```

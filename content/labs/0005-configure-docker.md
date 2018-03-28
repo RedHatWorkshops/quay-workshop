@@ -1,8 +1,8 @@
 ---
 layout: lab
-title: Configure Docker for an Insecure Registry
-permalink: /lab/configure-docker/
-module: Configure Docker
+title: Configuring Docker to use Quay Enterprise
+permalink: /lab/docker/configure/
+module: Docker
 ---
 
 Fetch the URL of your AWS Elastic Load Balancer that's currently exposing Quay Enterprise to the public.
@@ -23,25 +23,25 @@ Attempt to pull down an image from the admin user namespace. It will not work be
 docker pull $QUAY/admin/mypublicrepo
 ```
 
-Configure docker to use our self-signed CA cert.
+Configure docker to use our self-signed cert by providing the root CA.
 
 ```
 sudo mkdir -p /etc/docker/certs.d/$QUAY
 sudo cp rootCA.pem /etc/docker/certs.d/$QUAY/ca.crt
 ```
 
-Attempt to pull down an image from the admin user namespace. It will not work because we need to provide docker with our authentication credentials to access our private user namespace.
+Attempt to pull down an image from the admin user namespace. It will not work because we need to provide Docker with our authentication credentials to access our private user namespace.
 
 ```
 docker pull $QUAY/admin/mypublicrepo
 ```
 
-From the Quay Enterprise dashboard, navigate to Account Settings and `Generate Encrypted Password` under Docker CLI Password.  Copy and paste your Encrypted Password.
+From the Quay Enterprise dashboard, navigate to Account Settings and select **Generate Encrypted Password** under **Docker CLI Password**. Copy and paste the `docker login` command.
 
-Use the `docker login` command to automatically populate your docker config file at `/home/lab/.docker/config.json`.
+You can use the `docker login` command to automatically populate your docker config file at `/home/lab/.docker/config.json`.
 
 ```
-docker login -u="admin" -p="YOUR_ENCRYPTED_PASSWORD" $QUAY
+# docker login -u="admin" -p="YOUR_ENCRYPTED_PASSWORD" $QUAY
 ```
 
 Attempt to pull down an image from the admin user namespace. Although we did not create the repo yet Docker communication to our Quay Enterprise deployment should be successful.

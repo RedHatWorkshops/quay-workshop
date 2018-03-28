@@ -1,8 +1,8 @@
 ---
 layout: lab
-title: Deploy Quay Enterprise
+title: Deploy the Quay Enterprise Application
 permalink: /lab/install/quay-enterprise
-module: Installation
+module: Quay Enterprise Installation
 ---
 
 Begin the Quay Enterprise deployment by creating a brand new role that allows retrieving and writing Kubernetes secrets via the Kubernetes API.
@@ -52,7 +52,7 @@ subjects:
 EOF
 ```
 
-A container image of the Quay Enterprise software resides in a private coreos repository (quay.io/coreos/quay).  To retrieve the image, we will need a pull secret.
+A container image of the Quay Enterprise software resides in a private CoreOS repository (quay.io/coreos/quay).  To retrieve the image, we will need a pull secret.
 
 ```
 cat > config.json <<EOF
@@ -70,10 +70,10 @@ EOF
 Add the pull secret to Kubernetes by creating a Kubernetes secret.
 
 ```
-kubectl create secret generic coreos-pull-secret --from-file=".dockerconfigjson=config.json" --type='kubernetes.io/dockerconfigjson' --namespace=quay-enterprise
+kubectl -n quay-enterprise create secret generic coreos-pull-secret --from-file=".dockerconfigjson=config.json" --type='kubernetes.io/dockerconfigjson'
 ```
 
-Add an empty Quay Enterprise secret. The Quay Enterprise software `/config/stack/config.yaml` will be written to this secret after initial setup.
+Add an empty Quay Enterprise secret. The Quay Enterprise application will write its configuration information to this secret via the Kubernetes API. The configuration file will be available at   `/config/stack/config.yaml` within the Quay Enterprise application pod.
 
 ```
 kubectl create -f - <<EOF
@@ -247,6 +247,7 @@ DNS.1 = $QUAY
 DNS.2 = quay-enterprise
 EOF
 ```
+
 Generate a private key.
 
 ```
@@ -265,8 +266,8 @@ Generate the cert.
 openssl x509 -req -in ssl.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateserial -out ssl.cert -days 356 -extensions v3_req -extfile openssl.cnf
 ```
 
-Copy the ssl.key and ss.cert into the Quay Enterprise config directory.
-Note: See https://github.com/kubernetes/kubernetes/issues/58719
+Copy the `ssl.key` and `ss.cert` into the Quay Enterprise config directory.
+Note: See https://github.com/kubernetes/kubernetes/issues/58719. Skip this these commands for now.
 
 ```
 #APP_POD=`kubectl -n quay-enterprise get pods -l quay-enterprise-component=app -o jsonpath={$.items[*].metadata.name}`
@@ -274,7 +275,6 @@ Note: See https://github.com/kubernetes/kubernetes/issues/58719
 #kubectl cp ssl.cert $APP_POD:/conf/stack/ssl.cert
 #kubectl cp ssl.key $APP_POD:/conf/stack/ssl.key
 ```
-
 
 First, find your public IP address.
 
@@ -288,24 +288,24 @@ Now, stand up a simple http server and navigate to the above IP address in your 
 sudo python3 -m http.server 80
 ```
 
-Open the *Super User Admin Panel* and go to *Registry Settings*.
+Open the **Super User Admin Panel** and go to **Registry Settings**.
 
-Go to *Server Configuration* and set TLS to 'Quay Enterprise Handles TLS'.
+Go to **Server Configuration** and set TLS to `Quay Enterprise Handles TLS`.
 
 Upload your certificate and private key.
 
-Scroll down and set the Red hostname:
+Scroll down and set the Redis hostname:
 
-Redis Hostname: 'quay-enterprise-redis'
-Redis Port: '6379'
+Redis Hostname: `quay-enterprise-redis`
+Redis Port: `6379`
 
-Select `Save Configuration` and `Restart Container`.
+Select **Save Configuration** and **Restart Container**.
 
-After the container starts back up, verify all Quay Enterprise services are up and you get back a status code 200.
+After the pod starts back up, verify all Quay Enterprise services are up and and running. You should get back a `200` status code.
 
 ```
 sudo apt-get install jq
 curl --insecure https://$QUAY/health/endtoend | jq
 ```
 
-Verify you can successfully access the Quay UI in your web browser and bypass the *Not Secure* screen.
+Be sure to verify you can successfully access the Quay UI in your web browser and bypass the **Not Secure** screen.

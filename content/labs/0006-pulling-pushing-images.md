@@ -29,17 +29,19 @@ Verify the image has been pulled.
 docker images
 ```
 
-View the history of the image
+View the history of the image.
 
 ```
 docker history alpine
 ```
 
+Inspect the image.
+
 ```
 docker inspect alpine
 ```
 
-Tag the alpine the image
+Tag the image.
 
 ```
 docker tag alpine $QUAY/admin/mypublicrepo:v1
@@ -73,5 +75,4 @@ Here is an example of an API call for creating a new public repo.
 curl -H "Content-Type: application/json" -X POST http://a73d7f7fe2e6511e8875c069e2081a5e-397847376.us-east-1.elb.amazonaws.com/api/v1/repository -d '{"namespace":"admin","repository":"new_repo_via_api","description":"this repo was created via the API","visibility":"public"}' -H 'Authorization: Bearer <YOUR_API_TOKEN>' -v
 ```
 
-More information on generating API tokens can be found here.
-
+More information on the Quay API can be found here: 
