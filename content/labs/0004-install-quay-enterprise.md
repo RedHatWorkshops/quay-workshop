@@ -1,7 +1,7 @@
 ---
 layout: lab
 title: Deploy the Quay Enterprise Application
-permalink: /lab/install/quay-enterprise
+permalink: /lab/install/quay-enterprise/
 module: Quay Enterprise Installation
 ---
 
