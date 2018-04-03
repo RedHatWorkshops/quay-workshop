@@ -11,11 +11,17 @@ This course is designed for individuals interested in using and operating the Qu
 ## Slide Decks
 
 [Intro](https://drive.google.com/open?id=1-FkSzGtqRNf6D_Ru5IcAWs7eg6PIzraPdBaShbZQaEQ)
+
 [Quay Explained](https://drive.google.com/open?id=1RzCxq7WJ5CMQlxPI62lB5JMGfco78vqHjjSozJ8wDvI)
+
 [Container Image Workflow](https://drive.google.com/open?id=1zI4x0k2LfbxrRhRYKa9w1mD1_EaON65XEH4EOkwvfsI)
+
 [Working with Tags](https://drive.google.com/open?id=1eR411wgxjgPtjriwrdSlCzUHBqVYNmA3vhSiZQ8gPYA)
+
 [Quay Security](https://drive.google.com/open?id=1ppmLWwiwP3A3-OB_Dw8Sgc2e0ZrKQMhVXu8lzG2VAN0)
+
 [Build Triggers](https://drive.google.com/open?id=1qpcaaUux3WsREKfn5wqwEPj5BtnIA-tHgHdKLWsJ0GY)
+
 [Notifications](https://drive.google.com/open?id=1HmAGpCZZeStY_MJdwQaw-tQGz3QESVsr77yC-IxQXh0)
 
 
