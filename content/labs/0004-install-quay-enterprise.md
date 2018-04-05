@@ -200,7 +200,8 @@ eyJhbGciOiJSUzI1NiIsImtpZCI6IiJ9.eyJzY2hlbWFWZXJzaW9uIjoidjIiLCJ2ZXJzaW9uIjoiNyI
 
 Enter the following information:  
 
-Choose *Postgres* from the dropdown.  
+Choose *Postgres* from the dropdown.
+
 Database Server: `quay-postgres-service`  
 Username: `coreosuser`  
 Password: `coreostrainme`  
@@ -210,9 +211,9 @@ When prompted, select `Restart Container`.
 
 Create your Quay Enterprise SuperUser (Admin) account. Only SuperUsers can edit configuration settings.
 
-Username: `admin`
-Email address: `admin@coreostrain.me`
-Password: `coreostrainme`
+Username: `admin`  
+Email address: `admin@coreostrain.me`  
+Password: `coreostrainme`  
 
 Before changing any SuperUser settings, let's create self-signed certificates and copy them to the Quay Enterprise pod.
 
