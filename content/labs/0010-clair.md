@@ -17,16 +17,6 @@ To connect Quay Enterprise securely to the scanner, select the key graphic on th
 
 Select **Have the service provide a key**.
 
-
-
-kubectl -n quay-enterprise patch deployment quay-enterprise-app --patch "{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"date\":\"`date +'%s'`\"}}}}}"
-
-Open the Quay Enteprise UI and notice that we now have a new section in our namespace called *Builds*.
-
-
-
-
-
 Connect to the database. Enter password `coreostrainme`
 
 ```
@@ -128,6 +118,7 @@ EOF
 kubectl -n quay-enterprise create configmap clair-config --from-file=config.yaml=config.yaml
 ```
 
+```
 kubectl create -f - <<EOF
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -188,6 +179,7 @@ spec:
   selector:
     quay-enterprise-component: clair
 EOF
+```
 
 Verify the clair logs.
 
