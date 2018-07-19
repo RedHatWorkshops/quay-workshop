@@ -1,4 +1,0 @@
-locksmith:
-  reboot_strategy: "off"
-update:
-  group:  "stable"
