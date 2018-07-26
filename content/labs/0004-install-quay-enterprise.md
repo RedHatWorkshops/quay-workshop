@@ -52,7 +52,7 @@ subjects:
 EOF
 ```
 
-A container image of the Quay Enterprise software resides in a private CoreOS repository (quay.io/coreos/quay).  To retrieve the image, we will need a pull secret.
+A container image of the Quay Enterprise software resides in a private CoreOS repository (quay.io/coreos/quay).  To retrieve the image, we will need a pull secret inside a `config.json` file. You can retrieve a pull secret by signing up at [account.coreos.com](https://account.coreos.com). The pull secret below will not work.
 
 ```
 cat > config.json <<EOF
